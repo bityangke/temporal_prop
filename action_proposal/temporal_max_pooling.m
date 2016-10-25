@@ -14,12 +14,9 @@ M = size(feature,1);
 for i=1:stride:M-filter_size+1 % loop over original feature
     new_ind = (i-1)/stride + 1;
     new_feature{new_ind,1} = feature{i};
-    fprintf('i=%d\n', i);
     for j = i+1:i+filter_size-1
-        fprintf('j=%d ',j);
         new_feature{new_ind,1} = max(new_feature{new_ind,1}, feature{j});
     end
-    fprintf('\n');
 end
 
 % M = size(feature,1);
