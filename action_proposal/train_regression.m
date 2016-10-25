@@ -86,7 +86,7 @@ for i=1:5%length(imdb.images.path)
 end
 
 % -------------------------------------------------------------------------
-%                                        Perform Regularized Regression
+%                                      Perform Regularized L1 Regression
 % -------------------------------------------------------------------------
 [ws, stat_s] = lasso(proposal_total_feature, ts_total);
 [wl, stat_l] = lasso(proposal_total_feature, tl_total);
