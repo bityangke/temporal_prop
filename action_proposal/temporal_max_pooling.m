@@ -10,11 +10,24 @@ function new_feature = temporal_max_pooling(feature, filter_size, stride)
 %                         spatial features. (N=int((M-filter_size)/stride)+1) < M
 
 M = size(feature,1);
-N = uint32(floor((M-filter_size)/stride) + 1);
 
-for i=1:N
-    new_feature{i,1} = feature{2*i-1};
-    for j=2*i:(2*i-1)+filter_size-1
-        new_feature{i,1} = max(new_feature{i}, feature{j});
+for i=1:stride:M-filter_size+1 % loop over original feature
+    new_ind = (i-1)/stride + 1;
+    new_feature{new_ind,1} = feature{i};
+    fprintf('i=%d\n', i);
+    for j = i+1:i+filter_size-1
+        fprintf('j=%d ',j);
+        new_feature{new_ind,1} = max(new_feature{new_ind,1}, feature{j});
     end
+    fprintf('\n');
 end
+
+% M = size(feature,1);
+% N = uint32(floor((M-filter_size)/stride) + 1);
+% 
+% for i=1:N
+%     new_feature{i,1} = feature{2*i-1};  % this should be modified
+%     for j=2*i:(2*i-1)+filter_size-1     % this should be modified
+%         new_feature{i,1} = max(new_feature{i}, feature{j});
+%     end
+% end

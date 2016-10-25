@@ -5,7 +5,7 @@ run ../matlab/vl_setupnn;
 addpath('./Union');
 addpath('./range_intersection/');
 
-opts.dataDir = fullfile('..','..', '..', '..', 'dataset','action', 'THUMOS14', 'val') ; % modify this line to set up the data path
+opts.dataDir = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14'); % modify this line to set up the data path
 opts.expDir = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
 opts.modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
 [opts, varargin] = vl_argparse(opts, varargin) ;
@@ -22,8 +22,8 @@ opts.train.expDir = opts.expDir ;
 opts = vl_argparse(opts, varargin) ;
 display(opts);
 
-tempPoolingFilterSize = 10;   % Temporal MaxPooling filter size
-tempPoolingStepSize   = 10;   % Temporal MaxPooling step size (stride)
+tempPoolingFilterSize = 2;   % Temporal MaxPooling filter size
+tempPoolingStepSize   = 2;   % Temporal MaxPooling step size (stride)
 
 % -------------------------------------------------------------------------
 %                                                   Database initialization
@@ -53,13 +53,13 @@ proposal_total_feature = [];
 ts_total = [];
 tl_total = [];
 % loop over videos
-for i=1:5%length(imdb.images.path)
+for i=1:1%length(imdb.images.path)
     % loop over frames
     frames = load(imdb.images.path{i});
     labels = imdb.images.labels{i};
 
     % grid partitioning in temporal domain of a training video
-    [starts{i}, durations{i}] = generate_temporal_proposal(frames.im, 100);
+    [starts{i}, durations{i}] = generate_temporal_proposal(frames.im, 1);
 
     % match GT labels and proposals
     [matched_starts{i}, matched_durations{i}] = match_gt_proposal(labels, starts{i}, durations{i});
