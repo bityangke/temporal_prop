@@ -43,8 +43,12 @@ net = dagnn.DagNN.fromSimpleNN(net, 'canonicalNames', true)
 proposal_total_feature = [];
 ts_total = [];
 tl_total = [];
+num_videos = length(imdb.images.path);
+
+num_videos = 10;
 % loop over videos
-for i=1:1%length(imdb.images.path)
+for i=1:num_videos
+    fprintf('extracting features from video ... %d/%d\n', i, num_videos);
     % loop over frames
     frames = load(imdb.images.path{i});
     labels = imdb.images.labels{i};
