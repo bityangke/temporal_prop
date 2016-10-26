@@ -7,7 +7,7 @@ addpath('./range_intersection/');
 %                                                   Paths & Params Setting
 % -------------------------------------------------------------------------
 %%%% paths
-dataDir   = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14'); % modify this line to set up the data path
+dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % modify this line to set up the data path
 expDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
 imdbPath  = fullfile(expDir, 'imdb.mat');
 modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
@@ -45,7 +45,6 @@ ts_total = [];
 tl_total = [];
 num_videos = length(imdb.images.path);
 
-num_videos = 10;
 % loop over videos
 for i=1:num_videos
     fprintf('extracting features from video ... %d/%d\n', i, num_videos);
@@ -75,12 +74,15 @@ for i=1:num_videos
     % extract features for each temporal proposal
     [~, prop_feat_current] = extract_proposal_features(temp_pool_cnn_feat, shrinkFactor, matched_starts{i}, matched_durations{i});
     proposal_total_feature = [proposal_total_feature; prop_feat_current];
-    
+
     % extract regression target values
     [ts_current, tl_current] = extract_regression_target_values(labels, shrinkFactor, matched_starts{i}, matched_durations{i});
     ts_total = [ts_total; ts_current];
     tl_total = [tl_total; tl_current];
 end
+save(fullfile(expDir, 'proposal_total_feature.mat'), 'proposal_total_feature','-v7.3');
+save(fullfile(expDir, 'ts_total.mat'), 'ts_total','-v7.3');
+save(fullfile(expDir, 'tl_total.mat'), 'tl_total','-v7.3');
 
 % -------------------------------------------------------------------------
 %                                      Perform Regularized L1 Regression
@@ -95,3 +97,8 @@ end
 % Regression with Lasso!
 [ws, stat_s] = lasso(proposal_total_feature, ts_total);
 [wl, stat_l] = lasso(proposal_total_feature, tl_total);
+
+save(fullfile(expDir, 'ws.mat'), 'ws','-v7.3');
+save(fullfile(expDir, 'stat_s.mat'), 'stat_s','-v7.3');
+save(fullfile(expDir, 'wl.mat'), 'wl','-v7.3');
+save(fullfile(expDir, 'stat_l.mat'), 'stat_l','-v7.3');

@@ -9,13 +9,17 @@ if isTest == 1
     load(fullfile(data_dir, 'test_set_meta.mat'));
     thumos14_videos = test_videos;
     clear test_videos;
-    read_frms_to_mat(fullfile(data_dir, 'frames_part'), gt, fullfile(data_dir, 'mats'));
+    if ~exist(fullfile(data_dir, 'mats'), 'dir')
+        read_frms_to_mat(fullfile(data_dir, 'TH14_test_set_frames'), gt, fullfile(data_dir, 'mats'));
+    end
     imdb = addImageSet(imdb, fullfile(data_dir, 'mats'), 3) ;
 else
     load(fullfile(data_dir, 'validation_set_meta', 'validation_set.mat'));
     thumos14_videos = validation_videos;
     clear validation_videos;
-    read_frms_to_mat(fullfile(data_dir, 'validation_frames'), gt, fullfile(data_dir, 'mats'));
+    if ~exist(fullfile(data_dir, 'mats'), 'dir')
+        read_frms_to_mat(fullfile(data_dir, 'validation_frames'), gt, fullfile(data_dir, 'mats'));
+    end
     imdb = addImageSet(imdb, fullfile(data_dir, 'mats'), 1) ;
 end
 imdb = mark_gt_THUMOS14(gt, thumos14_videos, imdb);

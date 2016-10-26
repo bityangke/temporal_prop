@@ -6,7 +6,8 @@ addpath('./Union');
 addpath('./range_intersection/');
 
 % opts.dataDir = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14') ;
-opts.dataDir = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14', 'test') ;
+% opts.dataDir = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14', 'test') ;
+opts.dataDir = fullfile('..','..', '..', '..', 'dataset','action', 'THUMOS14', 'test') ; % modify this line to set up the data path
 opts.expDir = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
 opts.modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
 [opts, varargin] = vl_argparse(opts, varargin) ;
@@ -70,13 +71,13 @@ for i=1:length(imdb.images.path)
 %         im_ = single(im) ; % note: 0-255 range
 %         im_ = imresize(im_, net.meta.normalization.imageSize(1:2));
 %         im_ = im_ - net.meta.normalization.averageImage;
-%         net.eval({'input', im_});        
+%         net.eval({'input', im_});
 %         cnn_feat{j} = net.vars(net.getVarIndex('x15')).value;
 %     end
     % temporal max pooling or uniform sampling to generate boxes
-    
+
     % for each box, perform regression (perform? or train?)
-    
+
 end
 recall = sum(tp)./(sum(tp)+sum(fn));
 plot(thIoU, recall);
@@ -132,4 +133,3 @@ if nargout > 0
       varargout{1} = {'input', data, 'label', labels} ;
   end
 end
-
