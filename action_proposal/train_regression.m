@@ -1,46 +1,37 @@
 function info = test_ap(varargin)
-% CNN_IMAGENET_EVALUATE   Evauate MatConvNet models on ImageNet
-
 run ../matlab/vl_setupnn;
 addpath('./Union');
 addpath('./range_intersection/');
 
-opts.dataDir = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14'); % modify this line to set up the data path
-opts.expDir = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
-opts.modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
-[opts, varargin] = vl_argparse(opts, varargin) ;
-
-opts.imdbPath = fullfile(opts.expDir, 'imdb.mat');
-opts.networkType = [] ;
-opts.lite = false ;
-opts.numFetchThreads = 12 ;
-opts.train.batchSize = 128 ;
-opts.train.numEpochs = 1 ;
-opts.train.gpus = [] ;
-opts.train.prefetch = true ;
-opts.train.expDir = opts.expDir ;
-opts = vl_argparse(opts, varargin) ;
-display(opts);
-
-tempPoolingFilterSize = 2;   % Temporal MaxPooling filter size
-tempPoolingStepSize   = 2;   % Temporal MaxPooling step size (stride)
+% -------------------------------------------------------------------------
+%                                                   Paths & Params Setting
+% -------------------------------------------------------------------------
+%%%% paths
+dataDir   = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14'); % modify this line to set up the data path
+expDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
+imdbPath  = fullfile(expDir, 'imdb.mat');
+modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
+%%%% params
+tempPoolingFilterSize = 1;   % Temporal MaxPooling filter size
+tempPoolingStepSize   = 1;   % Temporal MaxPooling step size (stride)
+shrinkFactor          = tempPoolingStepSize;
 
 % -------------------------------------------------------------------------
 %                                                   Database initialization
 % -------------------------------------------------------------------------
-if exist(opts.imdbPath)
-    imdb = load(opts.imdbPath) ;
-    imdb.imageDir = fullfile(opts.dataDir, 'images');
+if exist(imdbPath, 'file')
+    imdb = load(imdbPath) ;
+    imdb.imageDir = fullfile(dataDir, 'images');
 else
-    imdb = setup_ap_THUMOS14(opts.dataDir, 0);
-    mkdir(opts.expDir) ;
-    save(opts.imdbPath, '-struct', 'imdb') ;
+    imdb = setup_ap_THUMOS14(dataDir, 0);
+    mkdir(expDir) ;
+    save(imdbPath, '-struct', 'imdb') ;
 end
 
 % -------------------------------------------------------------------------
 %                                                    Network loading
 % -------------------------------------------------------------------------
-net = load(opts.modelPath) ;
+net = load(modelPath) ;
 % remove the fc layers
 net.layers = net.layers(1:end-6);
 % convert simplenn to dagnn
@@ -76,11 +67,13 @@ for i=1:1%length(imdb.images.path)
     end
     % temporal max pooling or uniform sampling to generate boxes
     temp_pool_cnn_feat = temporal_max_pooling(cnn_feat, tempPoolingFilterSize, tempPoolingStepSize);
-    %temp_pool_cnn_feat{i,1} = temporal_max_pooling(cnn_feat, tempPoolingFilterSize, tempPoolingStepSize);
+
     % extract features for each temporal proposal
-    [~, prop_feat_current] = extract_proposal_features(temp_pool_cnn_feat, 10, matched_starts{i}, matched_durations{i});
+    [~, prop_feat_current] = extract_proposal_features(temp_pool_cnn_feat, shrinkFactor, matched_starts{i}, matched_durations{i});
     proposal_total_feature = [proposal_total_feature; prop_feat_current];
-    [ts_current, tl_current] = extract_regression_target_values(labels, 10, matched_starts{i}, matched_durations{i});
+    
+    % extract regression target values
+    [ts_current, tl_current] = extract_regression_target_values(labels, shrinkFactor, matched_starts{i}, matched_durations{i});
     ts_total = [ts_total; ts_current];
     tl_total = [tl_total; tl_current];
 end
@@ -88,54 +81,13 @@ end
 % -------------------------------------------------------------------------
 %                                      Perform Regularized L1 Regression
 % -------------------------------------------------------------------------
+% Regression Sanity Check!
+if size(proposal_total_feature,2) > size(proposal_total_feature,1)
+    fprintf('The feature matrix does not satisfy this condition!: N > D\n');
+    fprintf('Current N=%d < D=%d\n', size(proposal_total_feature,1), size(proposal_total_feature,2));
+    fprintf('You should collect more data points! \n');
+    return;
+end
+% Regression with Lasso!
 [ws, stat_s] = lasso(proposal_total_feature, ts_total);
 [wl, stat_l] = lasso(proposal_total_feature, tl_total);
-
-
-% -------------------------------------------------------------------------
-function fn = getBatchFn(opts, meta)
-% -------------------------------------------------------------------------
-if isfield(meta.normalization, 'keepAspect')
-  keepAspect = meta.normalization.keepAspect ;
-else
-  keepAspect = true ;
-end
-
-if numel(meta.normalization.averageImage) == 3
-  mu = double(meta.normalization.averageImage(:)) ;
-else
-  mu = imresize(single(meta.normalization.averageImage), ...
-                meta.normalization.imageSize(1:2)) ;
-end
-
-useGpu = numel(opts.train.gpus) > 0 ;
-
-bopts.test = struct(...
-  'useGpu', useGpu, ...
-  'numThreads', opts.numFetchThreads, ...
-  'imageSize',  meta.normalization.imageSize(1:2), ...
-  'cropSize', max(meta.normalization.imageSize(1:2)) / 256, ...
-  'subtractAverage', mu, ...
-  'keepAspect', keepAspect) ;
-
-fn = @(x,y) getBatch(bopts,useGpu,lower(opts.networkType),x,y) ;
-
-% -------------------------------------------------------------------------
-function varargout = getBatch(opts, useGpu, networkType, imdb, batch)
-% -------------------------------------------------------------------------
-images = strcat([imdb.imageDir filesep], imdb.images.name(batch)) ;
-if ~isempty(batch) && imdb.images.set(batch(1)) == 1
-  phase = 'train' ;
-else
-  phase = 'test' ;
-end
-data = getImageBatch(images, opts.(phase), 'prefetch', nargout == 0) ;
-if nargout > 0
-  labels = imdb.images.label(batch) ;
-  switch networkType
-    case 'simplenn'
-      varargout = {data, labels} ;
-    case 'dagnn'
-      varargout{1} = {'input', data, 'label', labels} ;
-  end
-end
