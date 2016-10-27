@@ -45,6 +45,7 @@ ts_total = [];
 tl_total = [];
 num_videos = length(imdb.images.path);
 
+num_videos = 20;
 % loop over videos
 for i=1:num_videos
     fprintf('extracting features from video ... %d/%d\n', i, num_videos);
@@ -54,6 +55,7 @@ for i=1:num_videos
 
     % grid partitioning in temporal domain of a training video
     [starts{i}, durations{i}] = generate_temporal_proposal(frames.im, 1);
+    % [starts{i}, durations{i}] = generate_temporal_proposal2(frames.im); % with various filter sizes and strides
 
     % match GT labels and proposals
     [matched_starts{i}, matched_durations{i}] = match_gt_proposal(labels, starts{i}, durations{i});
@@ -68,8 +70,12 @@ for i=1:num_videos
         net.eval({'input', im_});
         cnn_feat{j,1} = net.vars(net.getVarIndex('x15')).value;
     end
+    % channel subsampling
+    cnn_feat_pooled = channel_pooling(cnn_feat);
+
     % temporal max pooling or uniform sampling to generate boxes
-    temp_pool_cnn_feat = temporal_max_pooling(cnn_feat, tempPoolingFilterSize, tempPoolingStepSize);
+    temp_pool_cnn_feat = temporal_max_pooling(cnn_feat_pooled, tempPoolingFilterSize, tempPoolingStepSize);
+    % temp_pool_cnn_feat = temporal_max_pooling(cnn_feat, tempPoolingFilterSize, tempPoolingStepSize);
 
     % extract features for each temporal proposal
     [~, prop_feat_current] = extract_proposal_features(temp_pool_cnn_feat, shrinkFactor, matched_starts{i}, matched_durations{i});
