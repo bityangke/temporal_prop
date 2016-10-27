@@ -7,9 +7,9 @@ function new_feature = channel_pooling(feature)
 %         new_feature   : Nx1 cell array containing temporal max pooled
 %                         spatial features. (N=int((M-filter_size)/stride)+1) < M
 
-C = size(feature,3);
+C = size(feature{1},3);
 pool_factor = 8;
 
 for i=1:length(feature)
-    new_feature{i} = feature{i}(:,:,1:pool_factor:C);
+    new_feature{i,1} = feature{i}(:,:,1:pool_factor:C);
 end
