@@ -7,7 +7,8 @@ addpath('./range_intersection/');
 %                                                   Paths & Params Setting
 % -------------------------------------------------------------------------
 %%%% paths
-dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % modify this line to set up the data path
+dataDir   = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14'); % modify this line to set up the data path
+% dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % modify this line to set up the data path
 expDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
 imdbPath  = fullfile(expDir, 'imdb.mat');
 modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
@@ -52,13 +53,13 @@ for i=1:num_videos
     frames = load(imdb.images.path{i});
     labels = imdb.images.labels{i};
 
-    % grid partitioning in temporal domain of a training video
+    % 1) grid partitioning in temporal domain of a training video
     [starts{i}, durations{i}] = generate_temporal_proposal(frames.im, 1);
 
-    % match GT labels and proposals
+    % 2) match GT labels and proposals
     [matched_starts{i}, matched_durations{i}] = match_gt_proposal(labels, starts{i}, durations{i});
 
-    % extract CNN features
+    % 3) extract CNN features
     cnn_feat = {};
     for j=1:length(frames.im)
         im = frames.im{j};
@@ -68,14 +69,15 @@ for i=1:num_videos
         net.eval({'input', im_});
         cnn_feat{j,1} = net.vars(net.getVarIndex('x15')).value;
     end
-    % temporal max pooling or uniform sampling to generate boxes
+    
+    % 4) temporal max pooling or uniform sampling to generate boxes
     temp_pool_cnn_feat = temporal_max_pooling(cnn_feat, tempPoolingFilterSize, tempPoolingStepSize);
 
-    % extract features for each temporal proposal
+    % 5) extract features for each temporal proposal
     [~, prop_feat_current] = extract_proposal_features(temp_pool_cnn_feat, shrinkFactor, matched_starts{i}, matched_durations{i});
     proposal_total_feature = [proposal_total_feature; prop_feat_current];
 
-    % extract regression target values
+    % 6) extract regression target values
     [ts_current, tl_current] = extract_regression_target_values(labels, shrinkFactor, matched_starts{i}, matched_durations{i});
     ts_total = [ts_total; ts_current];
     tl_total = [tl_total; tl_current];
