@@ -1,4 +1,4 @@
-function info = test_ap(varargin)
+function info = train_regression_cnn(varargin)
 run ../matlab/vl_setupnn;
 addpath('./Union');
 addpath('./range_intersection/');
@@ -11,11 +11,13 @@ dataDir   = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14'); % modify
 % dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % modify this line to set up the data path
 expDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
 imdbPath  = fullfile(expDir, 'imdb.mat');
-modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
+% modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
+modelPath = fullfile('..','models','imagenet-vgg-verydeep-16.mat');
 %%%% params
 tempPoolingFilterSize = 100;   % Temporal MaxPooling filter size
 tempPoolingStepSize   = 100;   % Temporal MaxPooling step size (stride)
 shrinkFactor          = tempPoolingStepSize;
+piecewise = true;
 
 % -------------------------------------------------------------------------
 %                                                   Database initialization
@@ -33,8 +35,10 @@ end
 %                                                    Network loading
 % -------------------------------------------------------------------------
 net = load(modelPath) ;
+
 % remove the fc layers
-% net.layers = net.layers(1:end-6);
+net.layers = net.layers(1:end-7);
+
 % convert simplenn to dagnn
 net = dagnn.DagNN.fromSimpleNN(net, 'canonicalNames', true)
 
@@ -46,35 +50,35 @@ ts_total = [];
 tl_total = [];
 num_videos = length(imdb.images.path);
 
-load(fullfile(expDir, 'imagenet-alex_pool5_on_THUMOS14val_1to4.mat'));
-num_videos = size(cnn_feat_total,2);
+% load(fullfile(expDir, 'imagenet-alex_pool5_on_THUMOS14val_1to4.mat'));
+% num_videos = size(cnn_feat_total,2);
 
 % loop over videos
 for i=1:num_videos
     fprintf('extracting features from video ... %d/%d\n', i, num_videos);
     % loop over frames
-    cnn_feat = cnn_feat_total{1,i};
-%     frames = load(imdb.images.path{i});
+%     cnn_feat = cnn_feat_total{1,i};
+    frames = load(imdb.images.path{i});
     labels = imdb.images.labels{i};
 
     % grid partitioning in temporal domain of a training video
 %     [starts{i}, durations{i}] = generate_temporal_proposal(frames.im, 100);
-%     [starts{i}, durations{i}] = generate_temporal_proposal2(frames.im); % with various filter sizes and strides
-    [starts{i}, durations{i}] = generate_temporal_proposal2(cnn_feat); % with various filter sizes and strides
+    [starts{i}, durations{i}] = generate_temporal_proposal2(frames.im); % with various filter sizes and strides
+%     [starts{i}, durations{i}] = generate_temporal_proposal2(cnn_feat); % with various filter sizes and strides
 
     % match GT labels and proposals
     [matched_starts{i}, matched_durations{i}] = match_gt_proposal(labels, starts{i}, durations{i});
 
     % extract CNN features
-%     cnn_feat = {};
-%     for j=1:length(frames.im)
-%         im = frames.im{j};
-%         im_ = single(im) ; % note: 0-255 range
-%         im_ = imresize(im_, net.meta.normalization.imageSize(1:2));
-%         im_ = im_ - net.meta.normalization.averageImage;
-%         net.eval({'input', im_});
-%         cnn_feat{j,1} = net.vars(net.getVarIndex('x15')).value;
-%     end
+    cnn_feat = {};
+    for j=1:length(frames.im)
+        im  = single(frames.im{j});
+        im_ = imresize(im, net.meta.normalization.imageSize(1:2));
+        im_ = bsxfun(@minus, im_, net.meta.normalization.averageImage) ;
+
+        net.eval({'input', im_});
+        cnn_feat{j,1} = net.vars(net.getVarIndex('x30')).value;
+    end
     % channel subsampling
     cnn_feat_pooled = channel_pooling(cnn_feat);
 
@@ -91,13 +95,13 @@ for i=1:num_videos
     ts_total = [ts_total; ts_current];
     tl_total = [tl_total; tl_current];
 end
-% save(fullfile(expDir, 'proposal_total_feature.mat'), 'proposal_total_feature','-v7.3');
-% save(fullfile(expDir, 'ts_total.mat'), 'ts_total','-v7.3');
-% save(fullfile(expDir, 'tl_total.mat'), 'tl_total','-v7.3');
 
 % -------------------------------------------------------------------------
 %                                      Perform Regularized L1 Regression
 % -------------------------------------------------------------------------
+modelPath =  fullfile('..','models','imagenet-vgg-verydeep-16.mat');
+net = apcnn_init('piecewise', piecewise, 'modelPath', modelPath);
+
 % Regression Sanity Check!
 if size(proposal_total_feature,2) > size(proposal_total_feature,1)
     fprintf('The feature matrix does not satisfy this condition!: N > D\n');
@@ -117,3 +121,55 @@ save(fullfile(expDir, 'wl.mat'), 'wl','-v7.3');
 save(fullfile(expDir, 'stat_l.mat'), 'stat_l','-v7.3');
 
 evaluate_regression
+
+% --------------------------------------------------------------------
+function inputs = getBatch(opts, feature, gt_labels)
+% --------------------------------------------------------------------
+% Inputs:
+%         feature: WxHxCxT single conv5/pool5/relu5 features
+%         gt_labels: temporal ground truth label of actions
+%         gt_labels.gt_start_frames: Nx1 start_frames vector, N
+%         is the number of labels of i-th video
+%         gt_labels.gt_end_frames  : Nx1 end_frames vector, N
+%         is the number of labels of i-th video
+% Outputs: 
+%         inputs: 
+opts.visualize = 0;
+
+if isempty(batch)
+  return;
+end
+
+images = strcat([imdb.imageDir filesep], imdb.images.name(batch)) ;
+opts.prefetch = (nargout == 0);
+
+[im,rois,labels,btargets] = fast_rcnn_train_get_batch(images,imdb,...
+  batch, opts);
+
+if opts.prefetch, return; end
+
+nb = numel(labels);
+nc = numel(imdb.classes.name) + 1;
+
+% regression error only for positives
+instance_weights = zeros(1,1,4*nc,nb,'single');
+targets = zeros(1,1,4*nc,nb,'single');
+
+for b=1:nb
+  if labels(b)>0 && labels(b)~=opts.bgLabel
+    targets(1,1,4*(labels(b)-1)+1:4*labels(b),b) = btargets(b,:)';
+    instance_weights(1,1,4*(labels(b)-1)+1:4*labels(b),b) = 1;
+  end
+end
+
+rois = single(rois);
+
+if opts.useGpu > 0
+  im = gpuArray(im) ;
+  rois = gpuArray(rois) ;
+  targets = gpuArray(targets) ;
+  instance_weights = gpuArray(instance_weights) ;
+end
+
+inputs = {'input', im, 'label', labels, 'rois', rois, 'targets', targets, ...
+  'instance_weights', instance_weights} ;
