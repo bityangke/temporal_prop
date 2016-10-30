@@ -12,7 +12,7 @@ N = ceil(num_frms/grid_size);
 
 starts    = 1:grid_size:num_frms;
 durations = ones(1,N)*grid_size;
-durations(end) = mod(num_frms, grid_size);
+% durations(end) = mod(num_frms, grid_size);
 
 % ignore the last grid if it's size is differnt to the other grids
 if mod(num_frms, grid_size) ~= 0
