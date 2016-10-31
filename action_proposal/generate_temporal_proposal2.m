@@ -6,8 +6,8 @@ function [starts, durations] = generate_temporal_proposal2(video)
 %         durations: 1xN vector containing N temporal action durations with multiple %                    grid_sizes and strides
 
 num_frms = length(video);
-grid_bank   = [100]; %[1, 2, 3];    % unit in frames
-stride_bank = [1]; %[1, 2, 3];    % unit in frames
+grid_bank   = [50, 100, 200, 300, 500, 1000]; %[1, 2, 3];    % unit in frames
+stride_bank = [1, 5, 10]; %[1, 2, 3];    % unit in frames
 
 starts = [];
 durations = [];
