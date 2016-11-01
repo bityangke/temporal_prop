@@ -1,0 +1,63 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2014 The MathWorks, Inc.
+                    R2014a (8.3.0.532) 64-bit (glnxa64)
+                             February 11, 2014
+
+ 
+To get started, type one of these: helpwin, helpdesk, or demo.
+For product information, visit www.mathworks.com.
+ 
+>>  function info = extract_cnn_features(varargin)
+ |
+{Error: Function definitions are not permitted in this context.
+} 
+>> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> 
+net = 
+
+  DagNN with properties:
+
+                 layers: [1x15 struct]
+                   vars: [1x16 struct]
+                 params: [1x10 struct]
+                   meta: [1x1 struct]
+                   mode: 'normal'
+                 holdOn: 0
+    accumulateParamDers: 0
+         conserveMemory: 1
+        parameterServer: []
+                 device: 'cpu'
+
+>> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> extracting features from video ... 129/32
+extracting features from video ... 130/32
+extracting features from video ... 131/32
+extracting features from video ... 132/32
+extracting features from video ... 133/32
+extracting features from video ... 134/32
+extracting features from video ... 135/32
+extracting features from video ... 136/32
+extracting features from video ... 137/32
+extracting features from video ... 138/32
+extracting features from video ... 139/32
+extracting features from video ... 140/32
+extracting features from video ... 141/32
+extracting features from video ... 142/32
+extracting features from video ... 143/32
+extracting features from video ... 144/32
+extracting features from video ... 145/32
+extracting features from video ... 146/32
+extracting features from video ... 147/32
+extracting features from video ... 148/32
+extracting features from video ... 149/32
+extracting features from video ... 150/32
+extracting features from video ... 151/32
+extracting features from video ... 152/32
+extracting features from video ... 153/32
+extracting features from video ... 154/32
+extracting features from video ... 155/32
+extracting features from video ... 156/32
+extracting features from video ... 157/32
+extracting features from video ... 158/32
+extracting features from video ... 159/32
+extracting features from video ... 160/32
+>> >> 

@@ -1,0 +1,65 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2014 The MathWorks, Inc.
+                    R2014a (8.3.0.532) 64-bit (glnxa64)
+                             February 11, 2014
+
+ 
+To get started, type one of these: helpwin, helpdesk, or demo.
+For product information, visit www.mathworks.com.
+ 
+>>  function info = extract_cnn_features(varargin)
+ |
+{Error: Function definitions are not permitted in this context.
+} 
+>> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> 
+net = 
+
+  DagNN with properties:
+
+                 layers: [1x15 struct]
+                   vars: [1x16 struct]
+                 params: [1x10 struct]
+                   meta: [1x1 struct]
+                   mode: 'normal'
+                 holdOn: 0
+    accumulateParamDers: 0
+         conserveMemory: 1
+        parameterServer: []
+                 device: 'cpu'
+
+>> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> extracting features from video ... 1/32
+extracting features from video ... 2/32
+extracting features from video ... 3/32
+extracting features from video ... 4/32
+extracting features from video ... 5/32
+extracting features from video ... 6/32
+extracting features from video ... 7/32
+extracting features from video ... 8/32
+extracting features from video ... 9/32
+extracting features from video ... 10/32
+extracting features from video ... 11/32
+extracting features from video ... 12/32
+extracting features from video ... 13/32
+extracting features from video ... 14/32
+extracting features from video ... 15/32
+extracting features from video ... 16/32
+extracting features from video ... 17/32
+extracting features from video ... 18/32
+extracting features from video ... 19/32
+extracting features from video ... 20/32
+extracting features from video ... 21/32
+extracting features from video ... 22/32
+extracting features from video ... 23/32
+extracting features from video ... 24/32
+extracting features from video ... 25/32
+extracting features from video ... 26/32
+extracting features from video ... 27/32
+extracting features from video ... 28/32
+extracting features from video ... 29/32
+extracting features from video ... 30/32
+extracting features from video ... 31/32
+extracting features from video ... 32/32
+>> {Undefined function or variable 'nd'.
+} 
+>> >> 

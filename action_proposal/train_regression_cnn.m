@@ -7,7 +7,7 @@ addpath('./range_intersection/');
 %                                                   Paths & Params Setting
 % -------------------------------------------------------------------------
 %%%% paths
-dataDir   = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14'); % modify this line to set up the data path
+dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % modify this line to set up the data path
 % dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % modify this line to set up the data path
 expDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
 imdbPath  = fullfile(expDir, 'imdb.mat');
@@ -18,7 +18,7 @@ tempPoolingFilterSize = 100;   % Temporal MaxPooling filter size
 tempPoolingStepSize   = 100;   % Temporal MaxPooling step size (stride)
 shrinkFactor          = tempPoolingStepSize;
 piecewise = true;
-opts.train.gpus = [] ;
+opts.train.gpus = [9] ;
 opts.piecewise = true;  % piecewise training (+bbox regression)
 opts.train.batchSize = 1;
 opts.train.numSubBatches = 1 ;
@@ -66,7 +66,7 @@ tl_total = [];
 num_videos = length(imdb.images.path);
 
 for i=1:num_videos
-    imdb.images.feature_path{i} = sprintf('../data/THUMOS14/vgg16_relu5_features/imagenet-vgg_relu5_on_THUMOS14val_%d.mat',i);
+    imdb.images.feature_path{i} = sprintf('../data/imagenet12-eval-vgg-f/imagenet-vgg_relu5_on_THUMOS14val_%d.mat',i);
 end
 
 num_videos = 1;
@@ -79,18 +79,18 @@ num_videos = 1;
 % %     cnn_feat = cnn_feat_total{1,i};
 %     frames = load(imdb.images.path{i});
 %     labels = imdb.images.labels{i};
-% 
+%
 %     % grid partitioning in temporal domain of a training video
 % %     [starts{i}, durations{i}] = generate_temporal_proposal(frames.im, 100);
 % %     [starts{i}, durations{i}] = generate_temporal_proposal2(frames.im); % with various filter sizes and strides
 % %     [starts{i}, durations{i}] = generate_temporal_proposal2(cnn_feat); % with various filter sizes and strides
-% 
+%
 %     % match GT labels and proposals
 % %     [proposals, targets] = get_training_proposal(labels, starts{i}, durations{i}, 64);
 % %     [matched_starts{i}, matched_durations{i}] = match_gt_proposal(labels, starts{i}, durations{i});
 % %     proposals.starts = matched_starts{i};
 % %     proposals.durations = matched_durations{i};
-% %     
+% %
 % %     % extract CNN features
 % %     cnn_feat = {};
 % %     for j=1:length(frames.im)
@@ -100,28 +100,28 @@ num_videos = 1;
 % %         im  = single(frames.im{j});
 % %         im_ = imresize(im, net.meta.normalization.imageSize(1:2));
 % %         im_ = bsxfun(@minus, im_, net.meta.normalization.averageImage) ;
-% % 
+% %
 % %         net.eval({'input', im_});
 % %         cnn_feat{j,1} = net.vars(net.getVarIndex('x30')).value;
 % %     end
 % %     save(fullfile(expDir, sprintf('imagenet-vgg_relu5_on_THUMOS14val_%d.mat',i)), 'cnn_feat','-v7.3');
-% 
+%
 % %     % channel subsampling
 % %     cnn_feat_pooled = channel_pooling(cnn_feat);
-% % 
+% %
 % %     % temporal max pooling or uniform sampling to generate boxes
 % %     temp_pool_cnn_feat = temporal_max_pooling(cnn_feat_pooled, tempPoolingFilterSize, tempPoolingStepSize);    temp_pool_cnn_feat = temporal_max_pooling(cnn_feat, tempPoolingFilterSize, tempPoolingStepSize);
-% % 
+% %
 % %     % extract features for each temporal proposal
 % %     [~, prop_feat_current] = extract_proposal_features(temp_pool_cnn_feat, shrinkFactor, matched_starts{i}, matched_durations{i});
 % %     proposal_total_feature = [proposal_total_feature; prop_feat_current];
-% %    
+% %
 % %     % extract regression target values
 % %     [ts_current, tl_current] = extract_regression_target_values(labels, shrinkFactor, matched_starts{i}, matched_durations{i});
-% %  
+% %
 % %     targets.ts = ts_current;
 % %     targets.tl = tl_current;
-% %     
+% %
 %     inputs = getBatch(opts, imdb, 1);
 % end
 % -------------------------------------------------------------------------
@@ -152,7 +152,6 @@ bopts.interpolation = net.meta.normalization.interpolation;
 bopts.numThreads = opts.numFetchThreads;
 bopts.prefetch = opts.train.prefetch;
 
-
 % Regression with Fast R-CNN!
 [net,info] = cnn_train_dag(net, imdb, @(i,b) ...
                            getBatch(bopts,i,b), ...
@@ -169,18 +168,24 @@ function inputs = getBatch(opts, imdb, batch)
 %         is the number of labels of i-th video
 %         gt_labels.gt_end_frames  : Nx1 end_frames vector, N
 %         is the number of labels of i-th video
-%         proposals.starts   : 1xP vector containing N temporal action starting points 
+%         proposals.starts   : 1xP vector containing N temporal action starting points
 %                              with multiple grid_sizes and strides
 %         proposals.durations: 1xP vector containing N temporal action durations
 %                              with multiple grid_sizes and strides
-% Outputs: 
+% Outputs:
 %         inputs: Inputs to CNN eval
 
 opts.visualize = 0;
 opts.prefetch = (nargout == 0);
-if opts.prefetch, return; end    
+if opts.prefetch, return; end
 
 load(imdb.images.feature_path{batch});
+
+% copy cnn_feat from gpuArray to system memory
+for i=1:size(cnn_feat,1)
+    cnn_feat{i} = gather(cnn_feat{i});
+end
+
 labels = imdb.images.labels{batch};
 [starts, durations] = generate_temporal_proposal2(cnn_feat); % with various filter sizes and strides
 [proposals, my_targets] = get_training_proposal(labels, starts, durations, 64, size(cnn_feat,2), size(cnn_feat,1) );
@@ -206,13 +211,15 @@ end
 rois = transform_rois(proposals.rois, size(cnn_feat,2), size(cnn_feat,1));
 
 feature = cell2mat(cnn_feat');
+
 clear cnn_feat;
-% if opts.useGpu > 0
-%   feature = gpuArray(feature) ;
-%   rois = gpuArray(rois) ;
-%   targets = gpuArray(targets) ;
-%   instance_weights = gpuArray(instance_weights) ;
-% end
+
+if opts.useGpu > 0
+  feature = gpuArray(feature) ;
+  rois = gpuArray(rois) ;
+  targets = gpuArray(targets) ;
+  instance_weights = gpuArray(instance_weights) ;
+end
 
 inputs = {'input', feature, 'label', proposals.labels, 'rois', rois, 'targets', targets, ...
   'instance_weights', instance_weights} ;
