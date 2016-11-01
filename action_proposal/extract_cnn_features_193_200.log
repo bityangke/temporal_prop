@@ -1,0 +1,39 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2014 The MathWorks, Inc.
+                    R2014a (8.3.0.532) 64-bit (glnxa64)
+                             February 11, 2014
+
+ 
+To get started, type one of these: helpwin, helpdesk, or demo.
+For product information, visit www.mathworks.com.
+ 
+>>  function info = extract_cnn_features(varargin)
+ |
+{Error: Function definitions are not permitted in this context.
+} 
+>> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> 
+net = 
+
+  DagNN with properties:
+
+                 layers: [1x15 struct]
+                   vars: [1x16 struct]
+                 params: [1x10 struct]
+                   meta: [1x1 struct]
+                   mode: 'normal'
+                 holdOn: 0
+    accumulateParamDers: 0
+         conserveMemory: 1
+        parameterServer: []
+                 device: 'cpu'
+
+>> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> >> extracting features from video ... 193/8
+extracting features from video ... 194/8
+extracting features from video ... 195/8
+extracting features from video ... 196/8
+extracting features from video ... 197/8
+extracting features from video ... 198/8
+extracting features from video ... 199/8
+extracting features from video ... 200/8
+>> >> 

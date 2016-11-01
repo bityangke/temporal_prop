@@ -1,0 +1,116 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2014 The MathWorks, Inc.
+                    R2014a (8.3.0.532) 64-bit (glnxa64)
+                             February 11, 2014
+
+ 
+To get started, type one of these: helpwin, helpdesk, or demo.
+For product information, visit www.mathworks.com.
+ 
+>> 
+opts = 
+
+              train: [1x1 struct]
+          piecewise: 1
+               lite: 0
+    numFetchThreads: 2
+
+
+net = 
+
+  DagNN with properties:
+
+                 layers: [1x30 struct]
+                   vars: [1x31 struct]
+                 params: [1x26 struct]
+                   meta: [1x1 struct]
+                   mode: 'normal'
+                 holdOn: 0
+    accumulateParamDers: 0
+         conserveMemory: 1
+        parameterServer: []
+                 device: 'cpu'
+
+
+opts = 
+
+    piecewise: 1
+    modelPath: '../models/imagenet-vgg-verydeep-16.mat'
+
+cnn_train_dag: resetting GPU
+
+ans = 
+
+  CUDADevice with properties:
+
+                      Name: 'Tesla K80'
+                     Index: 9
+         ComputeCapability: '3.7'
+            SupportsDouble: 1
+             DriverVersion: 7.5000
+            ToolkitVersion: 5.5000
+        MaxThreadsPerBlock: 1024
+          MaxShmemPerBlock: 49152
+        MaxThreadBlockSize: [1024 1024 64]
+               MaxGridSize: [2.1475e+09 65535 65535]
+                 SIMDWidth: 32
+               TotalMemory: 1.2885e+10
+                FreeMemory: 1.2726e+10
+       MultiprocessorCount: 13
+              ClockRateKHz: 823500
+               ComputeMode: 'Default'
+      GPUOverlapsTransfers: 1
+    KernelExecutionTimeout: 0
+          CanMapHostMemory: 1
+           DeviceSupported: 1
+            DeviceSelected: 1
+
+train: epoch 01:   1/200:Not enough positive samples for 4-th GT: 45/64
+Number of total samples = 237, it should be =256
+Not enough positive samples for 7-th GT: 56/64
+Number of total samples = 248, it should be =256
+Not enough positive samples for 9-th GT: 14/64
+Number of total samples = 206, it should be =256
+Not enough positive samples for 12-th GT: 46/64
+Number of total samples = 238, it should be =256
+ 0.0 (0.0) Hz lossbbox: 0.012 losscls: 0.168
+train: epoch 01:   2/200:Not enough positive samples for 5-th GT: 54/64
+Number of total samples = 246, it should be =256
+Not enough positive samples for 7-th GT: 46/64
+Number of total samples = 238, it should be =256
+Not enough positive samples for 12-th GT: 46/64
+Number of total samples = 238, it should be =256
+Not enough positive samples for 15-th GT: 45/64
+Number of total samples = 237, it should be =256
+Not enough positive samples for 18-th GT: 51/64
+Number of total samples = 243, it should be =256
+Not enough positive samples for 20-th GT: 46/64
+Number of total samples = 238, it should be =256
+Not enough positive samples for 21-th GT: 51/64
+Number of total samples = 243, it should be =256
+Not enough positive samples for 24-th GT: 51/64
+Number of total samples = 243, it should be =256
+Not enough positive samples for 27-th GT: 53/64
+Number of total samples = 245, it should be =256
+Not enough positive samples for 28-th GT: 47/64
+Number of total samples = 239, it should be =256
+{Error using gpuArray
+Maximum variable size allowed on the device is exceeded.
+
+Error in train_regression_cnn>getBatch (line 218)
+  feature = gpuArray(feature) ;
+
+Error in train_regression_cnn>@(i,b)getBatch(bopts,i,b) (line 156)
+[net,info] = cnn_train_dag(net, imdb, @(i,b) ...
+
+Error in cnn_train_dag>processEpoch (line 201)
+    inputs = params.getBatch(params.imdb, batch) ;
+
+Error in cnn_train_dag (line 87)
+    [net, state] = processEpoch(net, state, params, 'train') ;
+
+Error in train_regression_cnn (line 156)
+[net,info] = cnn_train_dag(net, imdb, @(i,b) ...
+} 
+>> 

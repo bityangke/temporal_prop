@@ -10,7 +10,10 @@ addpath('./range_intersection/');
 dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % modify this line to set up the data path
 expDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
 imdbPath  = fullfile(expDir, 'imdb.mat');
-modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
+% modelPath = fullfile('..', 'models', 'imagenet-alex.mat');
+modelPath = fullfile('..','models','imagenet-vgg-verydeep-16.mat');
+ %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
+opts.gpu = [8];
 %%%% params
 tempPoolingFilterSize = 1;   % Temporal MaxPooling filter size
 tempPoolingStepSize   = 1;   % Temporal MaxPooling step size (stride)
@@ -33,7 +36,7 @@ end
 % -------------------------------------------------------------------------
 net = load(modelPath) ;
 % remove the fc layers
-net.layers = net.layers(1:end-6);
+net.layers = net.layers(1:end-7);
 % convert simplenn to dagnn
 net = dagnn.DagNN.fromSimpleNN(net, 'canonicalNames', true)
 
@@ -49,9 +52,15 @@ num_videos = length(imdb.images.path);
 % num_videos = 32;
 % cnn_feat = cell(num_videos,1);
 
+% Evaluate network either on CPU or GPU.
+if numel(opts.gpu) > 0
+  gpuDevice(opts.gpu) ;
+  net.move('gpu') ;
+end
+
 % loop over videos
-start_index = 129;
-end_index = 160;
+start_index = 1; % 84,99,114,126 should be recomputed
+end_index = 200;
 
 for i=start_index:end_index
 % for i=1:num_videos
@@ -61,14 +70,19 @@ for i=start_index:end_index
     cnn_feat = {};
     % extract CNN features
     for j=1:length(frames.im)
-        im = frames.im{j};
-        im_ = single(im) ; % note: 0-255 range
-        im_ = imresize(im_, net.meta.normalization.imageSize(1:2));
-        im_ = im_ - net.meta.normalization.averageImage; % normalization may be debugged
+        if mod(j,100) == 0
+            fprintf('features of frame %d/%d\n', j, length(frames.im));
+        end
+        im  = single(frames.im{j});
+        im_ = imresize(im, net.meta.normalization.imageSize(1:2));
+        im_ = bsxfun(@minus, im_, net.meta.normalization.averageImage);
+        if numel(opts.gpu) > 0
+          im_ = gpuArray(im_) ;
+        end
         net.eval({'input', im_});
-        % cnn_feat{i,j} = net.vars(net.getVarIndex('x15')).value;
-        cnn_feat{j,1} = net.vars(net.getVarIndex('x15')).value;
+        clear im_;
+        cnn_feat{j,1} = gather(net.vars(net.getVarIndex('x30')).value);
     end
-    save(fullfile(expDir, sprintf('imagenet-alex_pool5_on_THUMOS14val_%d.mat',i)), 'cnn_feat','-v7.3');
+    save(fullfile(expDir, sprintf('imagenet-vgg_relu5_on_THUMOS14val_%d.mat',i)), 'cnn_feat','-v7.3');
 end
 % save(fullfile(expDir, 'imagenet-alex_pool5_on_THUMOS14val.mat'), 'cnn_feat','-v7.3');
