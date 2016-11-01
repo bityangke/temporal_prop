@@ -72,6 +72,7 @@ end
 
 num_videos = 1;
 % loop over videos
+% for i=3:3
 % for i=1:num_videos
 %     fprintf('extracting features from video ... %d/%d\n', i, num_videos);
 %     % loop over frames
@@ -127,8 +128,8 @@ num_videos = 1;
 % -------------------------------------------------------------------------
 %                                      Perform Regularized L1 Regression
 % -------------------------------------------------------------------------
-% modelPath =  fullfile('..','models','imagenet-vgg-verydeep-16.mat');
-% net = apcnn_init('piecewise', piecewise, 'modelPath', modelPath);
+modelPath =  fullfile('..','models','imagenet-vgg-verydeep-16.mat');
+net = apcnn_init('piecewise', opts.piecewise, 'modelPath', modelPath);
 
 % Regression Sanity Check!
 % if size(proposal_total_feature,2) > size(proposal_total_feature,1)
@@ -185,7 +186,7 @@ labels = imdb.images.labels{batch};
 [starts, durations] = generate_temporal_proposal2(cnn_feat); % with various filter sizes and strides
 [proposals, my_targets] = get_training_proposal(labels, starts, durations, 64, size(cnn_feat,2), size(cnn_feat,1) );
 
-nb = size(my_targets,1);
+nb = size(proposals.rois,1);
 nc = 2;
 
 % regression error only for positives
@@ -194,7 +195,7 @@ targets = zeros(1,1,4*nc,nb,'single');
 
 for b=1:nb
     if proposals.labels(b)>0 && proposals.labels(b) ~= 0
-        targets(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = my_targets(b)';
+        targets(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = my_targets(b,:)';
         instance_weights(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = 1;
     end
 end
