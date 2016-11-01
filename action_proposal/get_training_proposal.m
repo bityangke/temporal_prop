@@ -67,13 +67,13 @@ end
 % check the number of positive/negative samples
 for i=1:size(numNeg,1);
     if numNeg(i) <  numNegative
-        fprintf('Not enough negative samples for %d-th GT: %d/%d', numNeg(i), numNegative);
+        fprintf('Not enough negative samples for %d-th GT: %d/%d\n', i, numNeg(i), numNegative);
     end
     if numPos(i) < numPositive
-        fprintf('Not enough positive samples for %d-th GT: %d/%d', numPos(i), numPositive);
+        fprintf('Not enough positive samples for %d-th GT: %d/%d\n', i, numPos(i), numPositive);
     end
     if numNeg(i) + numPos(i) ~= numTotalSamples
-        fprintf('Number of total samples = %d, it should be =%d', numNeg(i) + numPos(i), numTotalSamples);
+        fprintf('Number of total samples = %d, it should be =%d\n', numNeg(i) + numPos(i), numTotalSamples);
     end
 end
 

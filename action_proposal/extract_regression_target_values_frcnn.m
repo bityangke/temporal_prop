@@ -36,13 +36,14 @@ end
 LN = 0;
 for i=1:N
     LN = LN + size(starts{i,1},1);
+    K(i) = size(starts{i,1},1);
 end
 
 targets = zeros(LN,4);
 
 % loop over GT labels
 for i=1:N
-    K = size(starts{i,1},1);
+%     K = size(starts{i,1},1);
     Gx = activation_width*double(labels.gt_start_frames(i)-1)+1;
     Gy = 1;
     Gw = activation_width*double(labels.gt_end_frames(i) - labels.gt_start_frames(i) + 1);       
@@ -52,13 +53,18 @@ for i=1:N
     current_durations = durations{i,1};
     current_proposal_labels = proposal_labels{i,1};
     % loop over proposals
-    for j=1:K
+    for j=1:K(i)
         if ~isnan(current_starts(j)) && (current_proposal_labels(j) == 1)
             Px = activation_width*double(current_starts(j)-1)+1;
             Py = 1;
             Pw = activation_width*double(current_durations(j));
             Ph = activation_height;
-            targets((i-1)*K+j, :) = [double(Gx-Px)/double(Pw), double(Gy-Py)/double(Ph), log(double(Gw)/double(Pw)), log(double(Gh)/double(Ph))];
+            if i == 1
+                offset = 0;
+            else
+                offset = sum(K(1:i-1));
+            end
+            targets(offset+j, :) = [double(Gx-Px)/double(Pw), double(Gy-Py)/double(Ph), log(double(Gw)/double(Pw)), log(double(Gh)/double(Ph))];
         end
     end
 end
