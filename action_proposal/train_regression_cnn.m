@@ -20,7 +20,6 @@ shrinkFactor          = tempPoolingStepSize;
 piecewise = true;
 opts.train.gpus = [] ;
 opts.piecewise = true;  % piecewise training (+bbox regression)
-opts.train.gpus = [] ;
 opts.train.batchSize = 1;
 opts.train.numSubBatches = 1 ;
 opts.train.continue = true ;
