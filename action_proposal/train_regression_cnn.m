@@ -18,7 +18,7 @@ tempPoolingFilterSize = 100;   % Temporal MaxPooling filter size
 tempPoolingStepSize   = 100;   % Temporal MaxPooling step size (stride)
 shrinkFactor          = tempPoolingStepSize;
 piecewise = true;
-opts.train.gpus = [9] ;
+opts.train.gpus = [] ;
 opts.piecewise = true;  % piecewise training (+bbox regression)
 opts.train.batchSize = 1;
 opts.train.numSubBatches = 1 ;
@@ -185,10 +185,15 @@ load(imdb.images.feature_path{batch});
 for i=1:size(cnn_feat,1)
     cnn_feat{i} = gather(cnn_feat{i});
 end
+fprintf('\n.');
+tic;
+converted_feature = convert_2dfeat_to_1dfeat(cnn_feat);
+toc
 
 labels = imdb.images.labels{batch};
 [starts, durations] = generate_temporal_proposal2(cnn_feat); % with various filter sizes and strides
 [proposals, my_targets] = get_training_proposal(labels, starts, durations, 64, size(cnn_feat,2), size(cnn_feat,1) );
+fprintf('.');
 
 nb = size(proposals.rois,1);
 nc = 2;

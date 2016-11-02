@@ -49,16 +49,61 @@ if isempty(pRelu5)
   end
 end
 
+%----------------------------------------------------------------------%
+% remove and construct a new FC6 layer
+%----------------------------------------------------------------------%
+% store fc6 parameters
+pFc6f = (arrayfun(@(a) strcmp(a.name, 'fc6f'), net.params)==1);
+pFc6b = (arrayfun(@(a) strcmp(a.name, 'fc6b'), net.params)==1);
+fc6f_params = net.params(pFc6f).value;
+fc6b_params = net.params(pFc6b).value;
+fc6f_params = reshape(fc6f_params, [49 1 512 4096]);
+
+% remove the current fc6 layer
+net.removeLayer('fc6');
+
+% add a customized fc6 layer
+net.addLayer('fc6', dagnn.Conv('size', [49 1 512 4096], 'hasBias', true, 'stride', [1 1], 'pad', [0 0 0 0], 'dilate', [1 1]), {'xRP'}, {'x31'}, {'fc6f', 'fc6b'});
+
+% 
+pRelu6 = (arrayfun(@(a) strcmp(a.name, 'relu6'), net.layers)==1);
+pFc6 = (arrayfun(@(a) strcmp(a.name, 'fc6'), net.layers)==1);
+net.layers(pRelu6).inputs{1} = net.layers(pFc6).outputs{1};
+
+pFc6f = (arrayfun(@(a) strcmp(a.name, 'fc6f'), net.params)==1);
+pFc6b = (arrayfun(@(a) strcmp(a.name, 'fc6b'), net.params)==1);
+net.params(pFc6f).value = fc6f_params;
+net.params(pFc6b).value = fc6b_params;
+%----------------------------------------------------------------------%
+%    constructing a new FC6 layer done
+%----------------------------------------------------------------------%
+
+%----------------------------------------------------------------------%
+% add a customized roi pooling layer
+%----------------------------------------------------------------------%
 pFc6 = (arrayfun(@(a) strcmp(a.name, 'fc6'), net.layers)==1);
 if vggdeep
-  net.addLayer('roipool', dagnn.ROIPooling('method','max','transform',1/16,...
-    'subdivisions',[7,7],'flatten',0), ...
+      net.addLayer('roipool', dagnn.ROIPooling('method','max','transform',1/16,...
+    'subdivisions',[49,7],'flatten',0), ...
     {'input','rois'}, 'xRP');
 else
   net.addLayer('roipool', dagnn.ROIPooling('method','max','transform',1/16,...
     'subdivisions',[6,6],'flatten',0), ...
     {'input','rois'}, 'xRP');
 end
+%----------------------------------------------------------------------%
+% add a customized roi pooling layer done
+%----------------------------------------------------------------------%
+% pFc6 = (arrayfun(@(a) strcmp(a.name, 'fc6'), net.layers)==1);
+% if vggdeep
+%   net.addLayer('roipool', dagnn.ROIPooling('method','max','transform',1/16,...
+%     'subdivisions',[7,7],'flatten',0), ...
+%     {'input','rois'}, 'xRP');
+% else
+%   net.addLayer('roipool', dagnn.ROIPooling('method','max','transform',1/16,...
+%     'subdivisions',[6,6],'flatten',0), ...
+%     {'input','rois'}, 'xRP');
+% end
 
 pRP = (arrayfun(@(a) strcmp(a.name, 'roipool'), net.layers)==1);
 net.layers(pFc6).inputs{1} = net.layers(pRP).outputs{1};
@@ -135,22 +180,3 @@ net.removeLayer('pool1');
 net.removeLayer('pool2');
 net.removeLayer('pool3');
 net.removeLayer('pool4');
-% net.removeLayer('roipool');
-
-% pRoipool = (arrayfun(@(a) strcmp(a.name, 'roipool'), net.layers)==1);
-% net.layers(pRoipool).inputs{1} = 'input';
-
-% pFc6 = (arrayfun(@(a) strcmp(a.name, 'fc6'), net.layers)==1);
-% net.layers(pFc6).inputs{1} = 'input';
-
-% net.addLayer('fc6', dagnn.Conv('size', [7 7 512 4096], 'hasBias', true, 'stride', [1 1], 'pad', [0 0 0 0], 'dilate', [1 1]), {'input'}, {'fc6'}, {'fc6f', 'fc6b'});
-
-% function net = apcnn_init(modelPath)
-% % load an ImageNet pretrained model 
-% net = load(modelPath) ;
-% 
-% % remove the fc layers
-% net.layers = net.layers(1:end-6);
-% 
-% % convert simplenn to dagnn
-% net = dagnn.DagNN.fromSimpleNN(net, 'canonicalNames', true)
