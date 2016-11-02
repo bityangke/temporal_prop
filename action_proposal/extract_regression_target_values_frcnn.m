@@ -1,4 +1,4 @@
-function [targets] = extract_regression_target_values_frcnn(labels, starts, durations, proposal_labels, activation_width, activation_height)
+function [targets] = extract_regression_target_values_frcnn(labels, starts, durations, proposal_labels, activation_height)
 % Input:
 %         labels: temporal ground truth label of actions
 %         labels.gt_start_frames: Nx1 start_frames vector, N
@@ -17,8 +17,7 @@ function [targets] = extract_regression_target_values_frcnn(labels, starts, dura
 %         proposal_labels : Nx1 cell array containing array of proposal labels - 
 %                           the information whether each proposal is an action or a background
 %
-%          activation_width  : width of the activation map
-%          activation_height : height of the activation map
+%         activation_height : height of the activation map
 % Output:
 %         targets : LNx4 matrix containing regression target pair (ts, tl) 
 %                   where, tx = (Gx(i) - Px(i))/Pw(i)

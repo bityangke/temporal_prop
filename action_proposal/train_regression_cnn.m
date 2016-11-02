@@ -46,6 +46,11 @@ else
     save(imdbPath, '-struct', 'imdb') ;
 end
 
+imdb = load_partial_imdb_THUMOS(imdb, expDir);
+% for i=1:num_videos
+%     imdb.images.feature_path{i} = sprintf('../data/imagenet12-eval-vgg-f/1D_part/imagenet-vgg_relu5_on_THUMOS14val_%d_1D.mat',i);
+% end
+
 % -------------------------------------------------------------------------
 %                                                    Network loading
 % -------------------------------------------------------------------------
@@ -64,10 +69,6 @@ proposal_total_feature = [];
 ts_total = [];
 tl_total = [];
 num_videos = length(imdb.images.path);
-
-for i=1:num_videos
-    imdb.images.feature_path{i} = sprintf('../data/imagenet12-eval-vgg-f/imagenet-vgg_relu5_on_THUMOS14val_%d.mat',i);
-end
 
 num_videos = 1;
 % loop over videos
@@ -181,18 +182,9 @@ if opts.prefetch, return; end
 
 load(imdb.images.feature_path{batch});
 
-% copy cnn_feat from gpuArray to system memory
-for i=1:size(cnn_feat,1)
-    cnn_feat{i} = gather(cnn_feat{i});
-end
-fprintf('\n.');
-tic;
-converted_feature = convert_2dfeat_to_1dfeat(cnn_feat);
-toc
-
 labels = imdb.images.labels{batch};
-[starts, durations] = generate_temporal_proposal2(cnn_feat); % with various filter sizes and strides
-[proposals, my_targets] = get_training_proposal(labels, starts, durations, 64, size(cnn_feat,2), size(cnn_feat,1) );
+[starts, durations] = generate_temporal_proposal2(size(oneD_converted_feat,2)); % with various filter sizes and strides
+[proposals, my_targets] = get_training_proposal(labels, starts, durations, 64, size(oneD_converted_feat,1) );
 fprintf('.');
 
 nb = size(proposals.rois,1);
@@ -209,22 +201,16 @@ for b=1:nb
     end
 end
 
-% rois = zeros(2+1, nb);
-% rois(1,:) = 1;
-% rois(2:3,:) = proposals.rois';
-% rois = single(rois);
-rois = transform_rois(proposals.rois, size(cnn_feat,2), size(cnn_feat,1));
-
-feature = cell2mat(cnn_feat');
+rois = transform_rois(proposals.rois, size(oneD_converted_feat,1));
 
 clear cnn_feat;
 
 if opts.useGpu > 0
-  feature = gpuArray(feature) ;
+  oneD_converted_feat = gpuArray(oneD_converted_feat) ;
   rois = gpuArray(rois) ;
   targets = gpuArray(targets) ;
   instance_weights = gpuArray(instance_weights) ;
 end
 
-inputs = {'input', feature, 'label', proposals.labels, 'rois', rois, 'targets', targets, ...
+inputs = {'input', oneD_converted_feat, 'label', proposals.labels, 'rois', rois, 'targets', targets, ...
   'instance_weights', instance_weights} ;

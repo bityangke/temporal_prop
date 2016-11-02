@@ -1,4 +1,4 @@
-function [proposals, targets] = get_training_proposal(labels, starts, durations, numPositive, activation_width, activation_height)
+function [proposals, targets] = get_training_proposal(labels, starts, durations, numPositive, activation_height)
 % Input:
 %         labels: temporal ground truth label of actions
 %         labels.gt_start_frames: Nx1 start_frames vector, N
@@ -8,7 +8,6 @@ function [proposals, targets] = get_training_proposal(labels, starts, durations,
 %         starts: 1xK start frames of the temporal proposal
 %         ends  : 1xK end frames of the temporal proposal
 %         numPositive: number of positive examples per video
-%         activation_width  : width of the activation map
 %         activation_height : height of the activation map
 % Output:
 %         proposals.rois   : Px2 matrix containing N temporal (start, duration) pairs
@@ -82,7 +81,7 @@ proposals.labels = cell2mat(matched_labels);
 proposals.numPos = sum(numPos);
 proposals.numNeg = sum(numNeg);
 
-targets = extract_regression_target_values_frcnn(labels, matched_starts, matched_durations, matched_labels, activation_width, activation_height);
+targets = extract_regression_target_values_frcnn(labels, matched_starts, matched_durations, matched_labels, activation_height);
 
 % -------------------------------------------------------------------------
 function IoU = calculateIoU(range_window, range_GT_segment)

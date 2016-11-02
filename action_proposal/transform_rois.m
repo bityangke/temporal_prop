@@ -1,8 +1,7 @@
-function new_rois = transform_rois(rois, activation_width, activation_height)
+function new_rois = transform_rois(rois, activation_height)
 % Input
 %          rois     : Nx2 matrix, each row contains start frame index and
 %                     durations of an action proposal
-%          activation_width  : width of the activation map
 %          activation_height : height of the activation map
 % Output:
 %          new_rois : 5xN single matrix, each column contains left-top corner

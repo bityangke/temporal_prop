@@ -1,11 +1,11 @@
-function [starts, durations] = generate_temporal_proposal2(video)
+function [starts, durations] = generate_temporal_proposal2(numFrames)
 % Input:
-%         video    : 1xT cell array contains video frames
+%         numFrames    : number of video frames
 % Output:
 %         starts   : 1xN vector containing N temporal action starting points with multiple %                    grid_sizes and strides
 %         durations: 1xN vector containing N temporal action durations with multiple %                    grid_sizes and strides
 
-num_frms = length(video);
+% numFrames = length(video);
 grid_bank   = [20, 30, 50, 70, 100, 200, 300, 500, 1000]; %[1, 2, 3];    % unit in frames
 stride_bank = [1, 5, 10]; %[1, 2, 3];    % unit in frames
 
@@ -17,9 +17,9 @@ for i=1:length(grid_bank)
     grid_size = grid_bank(i);
     for j=1:length(stride_bank)
         stride = stride_bank(j);
-        M = floor((num_frms-grid_size)/stride)+1;
+        M = floor((numFrames-grid_size)/stride)+1;
 
-        current_starts    = 1:stride:(num_frms-grid_size+1);
+        current_starts    = 1:stride:(numFrames-grid_size+1);
         current_durations = ones(1,M)*grid_size;
 
         if size(current_starts,2) ~= size(current_durations,2)
