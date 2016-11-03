@@ -33,15 +33,15 @@ display(opts);
 % -------------------------------------------------------------------------
 %                                                   Database initialization
 % -------------------------------------------------------------------------
-% if exist(imdbPath, 'file')
-%     imdb = load(imdbPath) ;
-%     imdb.imageDir = fullfile(dataDir, 'images');
-% else
+if exist(imdbPath, 'file')
+    imdb = load(imdbPath) ;
+    imdb.imageDir = fullfile(dataDir, 'images');
+else
     imdb = setup_ap_THUMOS14(dataDir, 0);
     mkdir(expDir) ;
     imdb = load_partial_imdb_THUMOS(imdb, fullfile(expDir,'1D_part'));
     save(imdbPath, '-struct', 'imdb') ;
-% end
+end
 
 % -------------------------------------------------------------------------
 %                                      Train MLP Regressor and Classifier
