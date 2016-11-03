@@ -121,4 +121,5 @@ for i=1:length(imdb.images.name)
 
      imdb.images.labels{i}.gt_start_frames = gt_start_frames;
      imdb.images.labels{i}.gt_end_frames   = gt_end_frames;
+     imdb.images.labels{i}.num_frames      = thumos14_videos(file_index).number_of_frames;
  end

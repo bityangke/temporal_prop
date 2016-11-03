@@ -1,6 +1,7 @@
 function net = apcnn_init(varargin)
+% Action Proposal Initialization NN: modifed from the original FAST_RCNN_INIT 
+% modified by Jinwoo Choi, 2016.
 %FAST_RCNN_INIT  Initialize a Fast-RCNN
-
 % Copyright (C) 2016 Hakan Bilen.
 % All rights reserved.
 %
@@ -151,7 +152,7 @@ net.meta.classes.name = {'action', 'background' };
   
 net.meta.classes.description = {};
 
-% action proposal CNN
+% remove Conv layers
 net.removeLayer('conv1_1');
 net.removeLayer('conv1_2');
 net.removeLayer('conv2_1');
