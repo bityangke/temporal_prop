@@ -52,28 +52,32 @@ end
 %----------------------------------------------------------------------%
 % remove and construct a new FC6 layer
 %----------------------------------------------------------------------%
+tempPoolSize = 1;
 % store fc6 parameters
 pFc6f = (arrayfun(@(a) strcmp(a.name, 'fc6f'), net.params)==1);
 pFc6b = (arrayfun(@(a) strcmp(a.name, 'fc6b'), net.params)==1);
-fc6f_params = net.params(pFc6f).value;
-fc6b_params = net.params(pFc6b).value;
-fc6f_params = reshape(fc6f_params, [49 1 512 4096]);
+fc6f_params_pre = net.params(pFc6f).value;
+fc6b_params_pre = net.params(pFc6b).value;
+fc6f_params_pre = reshape(fc6f_params_pre, [49 1 512 4096]);
 
 % remove the current fc6 layer
 net.removeLayer('fc6');
 
 % add a customized fc6 layer
-net.addLayer('fc6', dagnn.Conv('size', [49 1 512 4096], 'hasBias', true, 'stride', [1 1], 'pad', [0 0 0 0], 'dilate', [1 1]), {'xRP'}, {'x31'}, {'fc6f', 'fc6b'});
+net.addLayer('fc6', dagnn.Conv('size', [49 tempPoolSize 512 4096], 'hasBias', true, 'stride', [1 1], 'pad', [0 0 0 0], 'dilate', [1 1]), {'xRP'}, {'x31'}, {'fc6f', 'fc6b'});
 
-% 
 pRelu6 = (arrayfun(@(a) strcmp(a.name, 'relu6'), net.layers)==1);
 pFc6 = (arrayfun(@(a) strcmp(a.name, 'fc6'), net.layers)==1);
 net.layers(pRelu6).inputs{1} = net.layers(pFc6).outputs{1};
 
 pFc6f = (arrayfun(@(a) strcmp(a.name, 'fc6f'), net.params)==1);
 pFc6b = (arrayfun(@(a) strcmp(a.name, 'fc6b'), net.params)==1);
-net.params(pFc6f).value = fc6f_params;
-net.params(pFc6b).value = fc6b_params;
+% duplicate parameters for temporal dimensions
+for i=1:tempPoolSize
+    tmp(:,i,:,:) = fc6f_params_pre;
+end
+net.params(pFc6f).value = tmp;
+net.params(pFc6b).value = fc6b_params_pre;
 %----------------------------------------------------------------------%
 %    constructing a new FC6 layer done
 %----------------------------------------------------------------------%
@@ -84,7 +88,7 @@ net.params(pFc6b).value = fc6b_params;
 pFc6 = (arrayfun(@(a) strcmp(a.name, 'fc6'), net.layers)==1);
 if vggdeep
       net.addLayer('roipool', dagnn.ROIPooling('method','max','transform',1/16,...
-    'subdivisions',[49,7],'flatten',0), ...
+    'subdivisions',[49,tempPoolSize],'flatten',0), ...
     {'input','rois'}, 'xRP');
 else
   net.addLayer('roipool', dagnn.ROIPooling('method','max','transform',1/16,...
