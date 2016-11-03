@@ -1,7 +1,7 @@
 function imdb = setup_ap_THUMOS14(data_dir, isTest)
 % Source images and classes
-imdb.meta.sets = {'train','validation','test'} ;
-imdb.images.set = [] ;
+imdb.meta.sets = {'train','validation','test'};
+imdb.images.set = [];
 
 [gt, ~] = read_gt_THUMOS14(fullfile(data_dir, 'annotation'));
 
@@ -64,25 +64,42 @@ for i=1:length(dir_list)
     end
 end
 
-% for i=1:length(dir_list)
-%     frms_list = clean_dir(fullfile(frms_dir,dir_list{i}));
-%     im = {};
-%     for j=1:length(frms_list)
-%         im{j} = imread(fullfile(frms_dir,dir_list{i},frms_list{j}));
-%     end
-%     save(fullfile(mat_dir,strcat(dir_list{i},'.mat')), 'im','-v7.3');
-% end
-
 % -------------------------------------------------------------------------
 function [imdb] = addImageSet(imdb, mat_dir, setCode)
 % -------------------------------------------------------------------------
 dir_list = clean_dir(mat_dir);
-for i=1:length(dir_list)
+N = length(dir_list);
+
+if setCode == 1
+    % randome split THUMOS-14 "validation" set to train and val 
+    % (THUMOS-14 does not provide any official train set for action detection)
+    val_ratio = 0.1;
+    rand_split_ind = randperm(N);
+    numVal   = floor(val_ratio*N);
+    valset_ind   = rand_split_ind(1:numVal);
+    trainset_ind = rand_split_ind(numVal+1:N);
+    imdb.images.set(valset_ind)   = setCode+1;    % setCode+1 is val set
+    imdb.images.set(trainset_ind) = setCode;    % setCode is train set
+elseif setCode == 3
+    imdb.images.set(:) = setCode;
+end
+
+for i=1:N
     imdb.images.path{i} = fullfile(mat_dir, dir_list{i});
-    imdb.images.set(i) = setCode;
     tmp = strsplit(dir_list{i},'.');
     imdb.images.name{i} = tmp{1};
 end
+
+% % -------------------------------------------------------------------------
+% function [imdb] = addImageSet(imdb, mat_dir, setCode)
+% % -------------------------------------------------------------------------
+% dir_list = clean_dir(mat_dir);
+% for i=1:length(dir_list)
+%     imdb.images.path{i} = fullfile(mat_dir, dir_list{i});
+%     imdb.images.set(i) = setCode;
+%     tmp = strsplit(dir_list{i},'.');
+%     imdb.images.name{i} = tmp{1};
+% end
 
 % -------------------------------------------------------------------------
 function imdb = mark_gt_THUMOS14(gt, thumos14_videos, imdb)

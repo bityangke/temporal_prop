@@ -5,7 +5,7 @@ function [new_imdb] = load_partial_imdb_THUMOS(imdb, featDir)
 %         featDir : CNN feature directory path
 % Output: imdb with CNN feature path informations
 
-new_imdb = imdb;
+new_imdb.meta = imdb.meta;
 list_1D = dir(strcat(featDir,'/*.mat'));
 existing_feat = zeros(size(list_1D,2),1);
 
@@ -16,10 +16,11 @@ end
 
 existing_feat = sort(existing_feat);
 
-new_imdb.images.set    = imdb.images.set(existing_feat);
+% new_imdb.images.set    = imdb.images.set(existing_feat);
 new_imdb.images.name   = imdb.images.name(existing_feat);
 new_imdb.images.path   = imdb.images.path(existing_feat);
 new_imdb.images.labels = imdb.images.labels(existing_feat);
+new_imdb = splitTrainVal(new_imdb, 0.2);
 
 for i=1:size(existing_feat,1)
     new_imdb.images.feature_path{i} = fullfile(featDir, sprintf('imagenet-vgg_relu5_on_THUMOS14val_%d_1D.mat',i));
@@ -27,7 +28,23 @@ end
 
 new_imdb = split_video_features(new_imdb,fullfile(featDir,'split'));
 
+% -------------------------------------------------------------------------
+function [imdb] = splitTrainVal(imdb, val_ratio)
+% -------------------------------------------------------------------------
+N = length(imdb.images.name);
+
+% randome split THUMOS-14 "validation" set to train and val 
+% (THUMOS-14 does not provide any official train set for action detection)
+rand_split_ind = randperm(N);
+numVal   = floor(val_ratio*N);
+valset_ind   = rand_split_ind(1:numVal);
+trainset_ind = rand_split_ind(numVal+1:N);
+imdb.images.set(valset_ind)   = 2;    % setCode+1 is val set
+imdb.images.set(trainset_ind) = 1;    % setCode is train set
+
+% -------------------------------------------------------------------------
 function [new_imdb] = split_video_features(imdb, splitFeatDir)
+% -------------------------------------------------------------------------
 % Input : 
 %         imdb    : original imdb which contains set, images_path,
 %         video_name, and labels(start_frame, end_frame, num_frames)
