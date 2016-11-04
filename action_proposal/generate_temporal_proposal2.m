@@ -17,10 +17,11 @@ for i=1:length(grid_bank)
     grid_size = grid_bank(i);
     for j=1:length(stride_bank)
         stride = stride_bank(j);
-        M = floor((numFrames-grid_size)/stride)+1;
+%         M = floor((numFrames-grid_size)/stride)+1;
 
-        current_starts    = 1:stride:(numFrames-grid_size+1);
-        current_durations = ones(1,M)*grid_size;
+        current_starts    = uint32(1:stride:(numFrames-grid_size+1));
+        M = numel(current_starts);
+        current_durations = uint32(ones(1,M)*grid_size);
 
         if size(current_starts,2) ~= size(current_durations,2)
             fprintf('mismatch between size(current_starts,2) and size(current_durations,2) in F=%d, stride=%d \n', grid_size, stride);

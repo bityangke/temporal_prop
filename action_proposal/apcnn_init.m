@@ -134,24 +134,6 @@ if opts.piecewise
     'lossbbox',{});
 end
 
-net.rebuild();
-
-% No decay for bias and set learning rate to 2
-for i=2:2:numel(net.params)
-  net.params(i).weightDecay = 0;
-  net.params(i).learningRate = 2;
-end
-
-% Change image-mean as in fast-rcnn code
-net.meta.normalization.averageImage = ...
-  reshape([122.7717 102.9801 115.9465],[1 1 3]);
-
-net.meta.normalization.interpolation = 'bilinear';
-
-net.meta.classes.name = {'action', 'background' };
-  
-net.meta.classes.description = {};
-
 % remove Conv layers
 net.removeLayer('conv1_1');
 net.removeLayer('conv1_2');
@@ -185,3 +167,58 @@ net.removeLayer('pool1');
 net.removeLayer('pool2');
 net.removeLayer('pool3');
 net.removeLayer('pool4');
+
+net.rebuild();
+
+% No decay for bias and set learning rate to 2
+for i=2:2:numel(net.params)
+  net.params(i).weightDecay = 0;
+  net.params(i).learningRate = 2;
+end
+
+% Change image-mean as in fast-rcnn code
+net.meta.normalization.averageImage = ...
+  reshape([122.7717 102.9801 115.9465],[1 1 3]);
+
+net.meta.normalization.interpolation = 'bilinear';
+
+net.meta.classes.name = {'action', 'background' };
+  
+net.meta.classes.description = {};
+
+% 
+% % remove Conv layers
+% net.removeLayer('conv1_1');
+% net.removeLayer('conv1_2');
+% net.removeLayer('conv2_1');
+% net.removeLayer('conv2_2');
+% net.removeLayer('conv3_1');
+% net.removeLayer('conv3_2');
+% net.removeLayer('conv3_3');
+% net.removeLayer('conv4_1');
+% net.removeLayer('conv4_2');
+% net.removeLayer('conv4_3');
+% net.removeLayer('conv5_1');
+% net.removeLayer('conv5_2');
+% net.removeLayer('conv5_3');
+% 
+% net.removeLayer('relu1_1');
+% net.removeLayer('relu1_2');
+% net.removeLayer('relu2_1');
+% net.removeLayer('relu2_2');
+% net.removeLayer('relu3_1');
+% net.removeLayer('relu3_2');
+% net.removeLayer('relu3_3');
+% net.removeLayer('relu4_1');
+% net.removeLayer('relu4_2');
+% net.removeLayer('relu4_3');
+% net.removeLayer('relu5_1');
+% net.removeLayer('relu5_2');
+% net.removeLayer('relu5_3');
+% 
+% net.removeLayer('pool1');
+% net.removeLayer('pool2');
+% net.removeLayer('pool3');
+% net.removeLayer('pool4');
+% 
+% net.rebuild();

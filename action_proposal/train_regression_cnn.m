@@ -31,7 +31,7 @@ opts = vl_argparse(opts, varargin) ;
 display(opts);
 
 % -------------------------------------------------------------------------
-%                                                   Database initialization
+%                                                  Database initialization
 % -------------------------------------------------------------------------
 if exist(imdbPath, 'file')
     imdb = load(imdbPath) ;
@@ -40,6 +40,7 @@ else
     imdb = setup_ap_THUMOS14(dataDir, 0);
     mkdir(expDir) ;
     imdb = load_partial_imdb_THUMOS(imdb, fullfile(expDir,'1D_part'));
+    imdb = compute_bbox_stats(imdb);    
     save(imdbPath, '-struct', 'imdb') ;
 end
 
@@ -66,7 +67,19 @@ bopts.prefetch = opts.train.prefetch;
 [net,info] = cnn_train_dag(net, imdb, @(i,b) ...
                            getBatch(bopts,i,b), ...
                            opts.train) ;
+                       
+% --------------------------------------------------------------------
+%                                                               Deploy
+% --------------------------------------------------------------------
+modelPath = fullfile(expDir, 'net-deployed.mat');
+if ~exist(modelPath,'file')
+    net = deployFRCNN(net, imdb);
+    net_ = net.saveobj();
+    save(modelPath, '-struct', 'net_') ;
+    clear net_ ;
+end
 % evaluate_regression
+
 
 % --------------------------------------------------------------------
 function inputs = getBatch(opts, imdb, batch)
@@ -98,25 +111,35 @@ load(imdb.images.feature_path{batch});
 labels = imdb.images.labels{batch};
 [starts, durations] = generate_temporal_proposal2(size(current_GT_1D_feat,2)); % with various filter sizes and strides
 [proposals, my_targets] = get_training_proposal(labels, starts, durations, 64, size(current_GT_1D_feat,1) );
-fprintf('.');
+
+% ----------------------- new target calculation
+rois = transform_rois(proposals.rois, size(current_GT_1D_feat,1));
+ex_rois = rois(2:5,:)';
+ex_rois(:,3) = ex_rois(:,1) + ex_rois(:,3) - 1; 
+gt_roi = [labels.gt_start_frames, 1, labels.gt_end_frames, size(current_GT_1D_feat,1)];
+gt_rois = single(repmat(gt_roi, [size(rois,2) 1]));
+targets_new = bbox_transform(ex_rois, gt_rois);
+% ----------------------- new target calculation end
 
 nb = size(proposals.rois,1);
 nc = 2;
-
 % regression error only for positives
 instance_weights = zeros(1,1,4*nc,nb,'single');
 targets = zeros(1,1,4*nc,nb,'single');
-
 for b=1:nb
     if proposals.labels(b)>0 && proposals.labels(b) ~= 0
-        targets(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = my_targets(b,:)';
+        targets(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = targets_new(b,:)';
         instance_weights(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = 1;
     end
 end
+% for b=1:nb
+%     if proposals.labels(b)>0 && proposals.labels(b) ~= 0
+%         targets(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = my_targets(b,:)';
+%         instance_weights(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = 1;
+%     end
+% end
 
 rois = transform_rois(proposals.rois, size(current_GT_1D_feat,1));
-
-clear cnn_feat;
 
 if opts.useGpu > 0
   current_GT_1D_feat = gpuArray(current_GT_1D_feat) ;
@@ -127,3 +150,4 @@ end
 
 inputs = {'input', current_GT_1D_feat, 'label', proposals.labels, 'rois', rois, 'targets', targets, ...
   'instance_weights', instance_weights} ;
+
