@@ -18,13 +18,13 @@ net.addLayer('probcls',dagnn.SoftMax(),net.layers(pfc8).outputs{1},...
 
 net.vars(net.getVarIndex('probcls')).precious = true ;
 
-idxBox = net.getLayerIndex('predbbox') ;
+idxBox = net.getLayerIndex('predbbox');
 if ~isnan(idxBox)
-    net.vars(net.layers(idxBox).outputIndexes(1)).precious = true ;
+    net.vars(net.layers(idxBox).outputIndexes(1)).precious = true;
     % incorporate mean and std to bbox regression parameters
     blayer = net.layers(idxBox) ;
-    filters = net.params(net.getParamIndex(blayer.params{1})).value ;
-    biases = net.params(net.getParamIndex(blayer.params{2})).value ;
+    filters = net.params(net.getParamIndex(blayer.params{1})).value;
+    biases = net.params(net.getParamIndex(blayer.params{2})).value;
 
     boxMeans = single(imdb.boxes.bboxMeanStd{1}');
     boxStds = single(imdb.boxes.bboxMeanStd{2}');

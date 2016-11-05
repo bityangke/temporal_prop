@@ -33,16 +33,16 @@ display(opts);
 % -------------------------------------------------------------------------
 %                                                  Database initialization
 % -------------------------------------------------------------------------
-if exist(imdbPath, 'file')
-    imdb = load(imdbPath) ;
-    imdb.imageDir = fullfile(dataDir, 'images');
-else
+% if exist(imdbPath, 'file')
+%     imdb = load(imdbPath) ;
+%     imdb.imageDir = fullfile(dataDir, 'images');
+% else
     imdb = setup_ap_THUMOS14(dataDir, 0);
     mkdir(expDir) ;
     imdb = load_partial_imdb_THUMOS(imdb, fullfile(expDir,'1D_part'));
     imdb = compute_bbox_stats(imdb);    
     save(imdbPath, '-struct', 'imdb') ;
-end
+% end
 
 % -------------------------------------------------------------------------
 %                                      Train MLP Regressor and Classifier
@@ -73,7 +73,7 @@ bopts.prefetch = opts.train.prefetch;
 % --------------------------------------------------------------------
 modelPath = fullfile(expDir, 'net-deployed.mat');
 if ~exist(modelPath,'file')
-    net = deployFRCNN(net, imdb);
+    net = deployAPCNN(net, imdb);
     net_ = net.saveobj();
     save(modelPath, '-struct', 'net_') ;
     clear net_ ;

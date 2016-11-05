@@ -136,7 +136,12 @@ for i=1:length(imdb.images.name)
      gt_start_frames(find(gt_start_frames==0)) = 1;
      gt_end_frames = uint32(gt_end_points*fps);
 
-     imdb.images.labels{i}.gt_start_frames = gt_start_frames;
-     imdb.images.labels{i}.gt_end_frames   = gt_end_frames;
+     % filter out gt_end frame is not greater than num_frames
+     ind = find(gt_end_frames<=thumos14_videos(file_index).number_of_frames);
+
+     imdb.images.labels{i}.gt_start_frames = gt_start_frames(ind);
+     imdb.images.labels{i}.gt_end_frames   = gt_end_frames(ind);
+%      imdb.images.labels{i}.gt_start_frames = gt_start_frames;
+%      imdb.images.labels{i}.gt_end_frames   = gt_end_frames;
      imdb.images.labels{i}.num_frames      = thumos14_videos(file_index).number_of_frames;
  end

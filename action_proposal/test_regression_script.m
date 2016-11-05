@@ -8,7 +8,7 @@ addpath('./range_intersection/');
 opts.classes = {'action'} ;
 opts.confThreshold = 0.5;
 imdbDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
-modelPath =  fullfile('.','data','exp_20161103_0800', 'net-epoch-12.mat');
+modelPath =  fullfile('.','data','exp_20161104_1207', 'net-epoch-12.mat');
 train_imdb_path = fullfile(imdbDir, 'imdb.mat');
 expDir    = fullfile(imdbDir, '1D_part_test_cheat');
 opts.gpu = [];
@@ -61,7 +61,8 @@ for i=1:size(gt_bbox,1)
         sc_shift = round(d*0.3);
     end
     
-    p_bbox(:,count) = [1 gt_bbox(i,1)+shift gt_bbox(i,2) gt_bbox(i,3) gt_bbox(i,4)]';   % shift
+%     p_bbox(:,count) = [1 gt_bbox(i,1)+shift gt_bbox(i,2) gt_bbox(i,3) gt_bbox(i,4)]';   % shift
+    p_bbox(:,count) = [1 gt_bbox(i,1) gt_bbox(i,2) gt_bbox(i,3) gt_bbox(i,4)]';   % original GT
     p_bbox(:,count+1) = [1 gt_bbox(i,1)-shift gt_bbox(i,2) gt_bbox(i,3) gt_bbox(i,4)]'; % shift
     p_bbox(:,count+2) = [1 gt_bbox(i,1)+sc_shift gt_bbox(i,2) round(scale*gt_bbox(i,3)) gt_bbox(i,4)]'; % scale and shift
     p_bbox(:,count+3) = [1 gt_bbox(i,1)+sc_shift gt_bbox(i,2) round(scale*gt_bbox(i,3)) gt_bbox(i,4)]'; % scale and shift
