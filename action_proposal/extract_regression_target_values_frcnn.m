@@ -42,10 +42,15 @@ targets = zeros(LN,4);
 
 % loop over GT labels
 for i=1:N
-    Gx = double(labels.gt_start_frames(i));
-    Gy = 1;
     Gw = double(labels.gt_end_frames(i) - labels.gt_start_frames(i) + 1);       
     Gh = activation_height;
+    GCx = double(labels.gt_start_frames(i)) + 0.5*Gw;
+    GCy = 1.0 + 0.5*Gh;
+  
+%     Gx = double(labels.gt_start_frames(i));
+%     Gy = 1;
+%     Gw = double(labels.gt_end_frames(i) - labels.gt_start_frames(i) + 1);       
+%     Gh = activation_height;
     
     current_starts    = starts{i,1};
     current_durations = durations{i,1};
@@ -53,16 +58,21 @@ for i=1:N
     % loop over proposals
     for j=1:K(i)
         if ~isnan(current_starts(j)) && (current_proposal_labels(j) == 1)
-            Px = double(current_starts(j));
-            Py = 1;
             Pw = double(current_durations(j));
             Ph = activation_height;
+            PCx = double(current_starts(j)) + 0.5*Pw;
+            PCy = 1.0 + 0.5*Ph;
+%             Px = double(current_starts(j));
+%             Py = 1;
+%             Pw = double(current_durations(j));
+%             Ph = activation_height;
             if i == 1
                 offset = 0;
             else
                 offset = sum(K(1:i-1));
             end
-            targets(offset+j, :) = [double(Gx-Px)/double(Pw), double(Gy-Py)/double(Ph), log(double(Gw)/double(Pw)), log(double(Gh)/double(Ph))];
+            targets(offset+j, :) = [double(GCx-PCx)/double(Pw), double(GCy-PCy)/double(Ph), log(double(Gw)/double(Pw)), log(double(Gh)/double(Ph))];
+%             targets(offset+j, :) = [double(Gx-Px)/double(Pw), double(Gy-Py)/double(Ph), log(double(Gw)/double(Pw)), log(double(Gh)/double(Ph))];
         end
     end
 end

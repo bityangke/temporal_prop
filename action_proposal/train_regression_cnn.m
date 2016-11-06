@@ -33,17 +33,17 @@ display(opts);
 % -------------------------------------------------------------------------
 %                                                  Database initialization
 % -------------------------------------------------------------------------
-% if exist(imdbPath, 'file')
-%     imdb = load(imdbPath) ;
-%     imdb.imageDir = fullfile(dataDir, 'images');
-% else
+if exist(imdbPath, 'file')
+    imdb = load(imdbPath) ;
+    imdb.imageDir = fullfile(dataDir, 'images');
+else
     imdb = setup_ap_THUMOS14(dataDir, 0);
     mkdir(expDir) ;
     imdb = load_partial_imdb_THUMOS(imdb, fullfile(expDir,'1D_part'));
     imdb = compute_bbox_stats(imdb);    
     save(imdbPath, '-struct', 'imdb') ;
-% end
-
+end
+    
 % -------------------------------------------------------------------------
 %                                      Train MLP Regressor and Classifier
 % -------------------------------------------------------------------------
@@ -95,7 +95,17 @@ opts.visualize = 0;
 opts.prefetch = (nargout == 0);
 if opts.prefetch, return; end
 
-load(imdb.images.feature_path{batch});
+% 'input dim should be: HxWxCxb, 'label' dim: Nx1, 'rois' dim: 5xN,
+% 'targets' dim: 1x1x4(K+1)xN, 'instance_weights' dim:  1x1x4(K+1)xN
+% 
+%
+% in order to process multiple batches, we need to transfrom the video
+% featuers to a canonical size
+% 
+% for i=1:numel(batch)
+%     load(imdb.images.feature_path{batch(i)});
+%     feat{i} = current_GT_1D_feat;
+% end
 
 %         feature: WxHxCxT single conv5/pool5/relu5 features
 %         gt_labels: temporal ground truth label of actions
@@ -109,16 +119,18 @@ load(imdb.images.feature_path{batch});
 %                              with multiple grid_sizes and strides
 
 labels = imdb.images.labels{batch};
-[starts, durations] = generate_temporal_proposal2(size(current_GT_1D_feat,2)); % with various filter sizes and strides
-[proposals, my_targets] = get_training_proposal(labels, starts, durations, 64, size(current_GT_1D_feat,1) );
+% [starts, durations] = generate_temporal_proposal2(size(current_GT_1D_feat,2)); % with various filter sizes and strides
+% [proposals, my_targets] = get_training_proposal(labels, starts, durations, 64, size(current_GT_1D_feat,1) );
+proposals  = imdb.boxes.proposals{batch};
+my_targets = imdb.boxes.ptargets{batch};
 
 % ----------------------- new target calculation
-rois = transform_rois(proposals.rois, size(current_GT_1D_feat,1));
-ex_rois = rois(2:5,:)';
-ex_rois(:,3) = ex_rois(:,1) + ex_rois(:,3) - 1; 
-gt_roi = [labels.gt_start_frames, 1, labels.gt_end_frames, size(current_GT_1D_feat,1)];
-gt_rois = single(repmat(gt_roi, [size(rois,2) 1]));
-targets_new = bbox_transform(ex_rois, gt_rois);
+% rois = transform_rois(proposals.rois, size(current_GT_1D_feat,1));
+% ex_rois = rois(2:5,:)';
+% ex_rois(:,3) = ex_rois(:,1) + ex_rois(:,3) - 1; 
+% gt_roi = [labels.gt_start_frames, 1, labels.gt_end_frames, size(current_GT_1D_feat,1)];
+% gt_rois = single(repmat(gt_roi, [size(rois,2) 1]));
+% targets_new = bbox_transform(ex_rois, gt_rois);
 % ----------------------- new target calculation end
 
 nb = size(proposals.rois,1);
@@ -128,7 +140,7 @@ instance_weights = zeros(1,1,4*nc,nb,'single');
 targets = zeros(1,1,4*nc,nb,'single');
 for b=1:nb
     if proposals.labels(b)>0 && proposals.labels(b) ~= 0
-        targets(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = targets_new(b,:)';
+        targets(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = my_targets(b,:)';
         instance_weights(1,1,4*(proposals.labels(b)-1)+1:4*proposals.labels(b),b) = 1;
     end
 end

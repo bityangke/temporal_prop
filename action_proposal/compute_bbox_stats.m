@@ -41,6 +41,16 @@ stds = sqrt(bsxfun(@rdivide,squared_sums,class_counts) - means.^2);
 imdb.boxes.bboxMeanStd{1} = means;
 imdb.boxes.bboxMeanStd{2} = stds;
 
+% normalize proposal targets to have mean zero, stdev 1
+% do not normalize proposal targets of y and height
+for i=1:numel(imdb.boxes.ptargets)
+    norm_ptargets{i} = bsxfun(@minus, imdb.boxes.ptargets{i}, means);
+    norm_ptargets{i}(:,1) = bsxfun(@rdivide, norm_ptargets{i}(:,1), stds(:,1));
+    norm_ptargets{i}(:,3) = bsxfun(@rdivide, norm_ptargets{i}(:,3), stds(:,3));
+    imdb.boxes.ptargets{i} = norm_ptargets{i};
+end
+
+
 display('bbox target means:');
 display(means);
 display('bbox target stddevs:');
