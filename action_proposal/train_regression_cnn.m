@@ -44,6 +44,11 @@ else
     save(imdbPath, '-struct', 'imdb') ;
 end
     
+imdb = setup_ap_THUMOS14(dataDir, 0);
+mkdir(expDir) ;
+imdb = load_partial_imdb_THUMOS(imdb, fullfile(expDir,'1D_part'));
+imdb = compute_bbox_stats(imdb);    
+
 % -------------------------------------------------------------------------
 %                                      Train MLP Regressor and Classifier
 % -------------------------------------------------------------------------
@@ -101,7 +106,9 @@ if opts.prefetch, return; end
 %
 % in order to process multiple batches, we need to transfrom the video
 % featuers to a canonical size
-% 
+
+load(imdb.images.feature_path{batch});
+
 % for i=1:numel(batch)
 %     load(imdb.images.feature_path{batch(i)});
 %     feat{i} = current_GT_1D_feat;

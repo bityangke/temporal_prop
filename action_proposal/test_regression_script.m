@@ -8,7 +8,7 @@ addpath('./range_intersection/');
 opts.classes = {'action'} ;
 opts.confThreshold = 0.5;
 imdbDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
-modelPath =  fullfile('.','data','exp_20161104_1207', 'net-epoch-12.mat');
+modelPath =  fullfile('.','data','exp_20161105_norm', 'net-epoch-6.mat');
 train_imdb_path = fullfile(imdbDir, 'imdb.mat');
 expDir    = fullfile(imdbDir, '1D_part_test_cheat');
 opts.gpu = [];
