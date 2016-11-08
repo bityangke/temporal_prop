@@ -64,8 +64,8 @@ new_imdb.meta = imdb.meta;
 
 count = 1;
 % loop over all videos
-% for i=1:size(imdb.images.labels,2)
-for i=20:20%size(imdb.images.labels,2)
+for i=1:size(imdb.images.labels,2)
+% for i=20:20%size(imdb.images.labels,2)
     fprintf('Splitting %d-th video... out of %d total videos\n', i, size(imdb.images.labels,2));
     N = size(imdb.images.labels{i}.gt_start_frames,1);
     load(imdb.images.feature_path{i});   % load features for current frame

@@ -53,7 +53,7 @@ end
 %----------------------------------------------------------------------%
 % remove and construct a new FC6 layer
 %----------------------------------------------------------------------%
-tempPoolSize = 1;
+tempPoolSize = 3;
 % store fc6 parameters
 pFc6f = (arrayfun(@(a) strcmp(a.name, 'fc6f'), net.params)==1);
 pFc6b = (arrayfun(@(a) strcmp(a.name, 'fc6b'), net.params)==1);
