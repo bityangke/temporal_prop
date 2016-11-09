@@ -168,6 +168,9 @@ net.removeLayer('pool2');
 net.removeLayer('pool3');
 net.removeLayer('pool4');
 
+net.removeLayer('relu7');
+net.removeLayer('relu6');
+
 net.rebuild();
 
 % No decay for bias and set learning rate to 2

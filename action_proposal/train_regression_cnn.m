@@ -16,6 +16,7 @@ modelPath = fullfile('..','models','imagenet-vgg-verydeep-16.mat'); % model path
 %%%% params for train regression MLP
 opts.train.gpus = [] ;
 opts.piecewise = true;  % piecewise training (+bbox regression)
+opts.train.expDir = fullfile('.','data','exp_20161109_relu_removed_tempPool3');
 opts.train.batchSize = 1;
 opts.train.numSubBatches = 1 ;
 opts.train.continue = true ;
