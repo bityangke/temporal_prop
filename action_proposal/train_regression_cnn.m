@@ -9,14 +9,14 @@ addpath('./range_intersection/');
 %%%% paths for feature extraction
 dataDir   = fullfile('..', '..', 'st-slice-cnn-tar', 'data', 'THUMOS14'); % for MacBook. modify this line to set up the data path
 % dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % for cvmlp server. modify this line to set up the data path
-expDir    = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
+expDir    = fullfile('..','data','exp_20161109_256sample_128pos_denser_window_tempPool3');
+featDir   = fullfile('..', 'data', 'imagenet12-eval-vgg-f', '1D_part');
 imdbPath  = fullfile(expDir, 'imdb.mat');
-modelPath = fullfile('..','models','imagenet-vgg-verydeep-16.mat'); % model path for CNN feature extraction
 
 %%%% params for train regression MLP
 opts.train.gpus = [] ;
 opts.piecewise = true;  % piecewise training (+bbox regression)
-opts.train.expDir = fullfile('.','data','exp_20161109_relu_removed_tempPool3');
+opts.train.expDir = expDir;
 opts.train.batchSize = 1;
 opts.train.numSubBatches = 1 ;
 opts.train.continue = true ;
@@ -34,20 +34,28 @@ display(opts);
 % -------------------------------------------------------------------------
 %                                                  Database initialization
 % -------------------------------------------------------------------------
+
+% if imdb is constructed already, read it
 if exist(imdbPath, 'file')
     imdb = load(imdbPath) ;
     imdb.imageDir = fullfile(dataDir, 'images');
 else
+    % read annotation file to imdb struct, convert frames to a single mat file
+    % per video
     imdb = setup_ap_THUMOS14(dataDir, 0);
-    mkdir(expDir) ;
-    imdb = load_partial_imdb_THUMOS(imdb, fullfile(expDir,'1D_part'));
+    
+    % split video feature mat files to multiple feature files (corresponding to GT annotations) 
+    % and store the splitted CNN feature file paths to imdb
+    % also split validation set to training and validation sets
+    imdb = load_partial_imdb_THUMOS(imdb, featDir);
+    
+    % pre-compute proposals and store to imdb, compute bbox mean and stdev
+    % value
     imdb = compute_bbox_stats(imdb);    
+    
+    mkdir(expDir);
     save(imdbPath, '-struct', 'imdb') ;
 end
-
-% imdb = setup_ap_THUMOS14(dataDir, 0);
-% new_imdb = load_partial_imdb_THUMOS(imdb, fullfile(expDir,'1D_part'));
-% new_imdb = compute_bbox_stats(new_imdb);   
 
 % -------------------------------------------------------------------------
 %                                      Train MLP Regressor and Classifier

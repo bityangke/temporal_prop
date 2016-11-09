@@ -17,7 +17,7 @@ function [proposals, targets] = get_training_proposal(labels, starts, durations,
 %         targets          : Px2 target coordinate matrix containing
 %                            regression target values
 
-thIoU_pos = 0.7;
+thIoU_pos = 0.5;
 thIoU_neg = 0.3;
 numTotalSamples = 256;
 numNegative = numTotalSamples - numPositive;
