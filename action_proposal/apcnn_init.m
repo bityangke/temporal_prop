@@ -113,6 +113,14 @@ end
 pRP = (arrayfun(@(a) strcmp(a.name, 'roipool'), net.layers)==1);
 net.layers(pFc6).inputs{1} = net.layers(pRP).outputs{1};
 
+% pDrop6 = (arrayfun(@(a) strcmp(a.name, 'drop6'), net.layers)==1);
+% net.layers(pDrop6).inputs{1} = net.layers(pRP).outputs{1};
+
+% Feed output of the drop6 to input of the predcls
+pPredcls = (arrayfun(@(a) strcmp(a.name, 'predcls'), net.layers)==1);
+pDrop6 = (arrayfun(@(a) strcmp(a.name, 'drop6'), net.layers)==1);
+net.layers(pPredcls).inputs{1} = net.layers(pDrop6).outputs{1};
+
 % Add softmax loss layer.
 pFc8 = (arrayfun(@(a) strcmp(a.name, 'predcls'), net.layers)==1);
 net.addLayer('losscls',dagnn.Loss(), ...
@@ -122,9 +130,9 @@ net.addLayer('losscls',dagnn.Loss(), ...
 % Add bbox regression layer.
 if opts.piecewise
   pparFc8 = (arrayfun(@(a) strcmp(a.name, 'predclsf'), net.params)==1);
-  pdrop7 = (arrayfun(@(a) strcmp(a.name, 'drop7'), net.layers)==1);
+  pdrop6  = (arrayfun(@(a) strcmp(a.name, 'drop6'), net.layers)==1);
   net.addLayer('predbbox',dagnn.Conv('size',[1 1 size(net.params(pparFc8).value,3) 8],'hasBias', true), ...
-    net.layers(pdrop7).outputs{1},'predbbox',{'predbboxf','predbboxb'});
+    net.layers(pdrop6).outputs{1},'predbbox',{'predbboxf','predbboxb'});
 
   net.params(end-1).value = 0.001 * randn(1,1,size(net.params(pparFc8).value,3), 8,'single');
   net.params(end).value = zeros(1, 8,'single');
@@ -133,6 +141,21 @@ if opts.piecewise
     {'predbbox','targets','instance_weights'}, ...
     'lossbbox',{});
 end
+
+% % Add bbox regression layer.
+% if opts.piecewise
+%   pparFc8 = (arrayfun(@(a) strcmp(a.name, 'predclsf'), net.params)==1);
+%   pdrop7 = (arrayfun(@(a) strcmp(a.name, 'drop7'), net.layers)==1);
+%   net.addLayer('predbbox',dagnn.Conv('size',[1 1 size(net.params(pparFc8).value,3) 8],'hasBias', true), ...
+%     net.layers(pdrop7).outputs{1},'predbbox',{'predbboxf','predbboxb'});
+% 
+%   net.params(end-1).value = 0.001 * randn(1,1,size(net.params(pparFc8).value,3), 8,'single');
+%   net.params(end).value = zeros(1, 8,'single');
+% 
+%   net.addLayer('lossbbox',dagnn.LossSmoothL1(), ...
+%     {'predbbox','targets','instance_weights'}, ...
+%     'lossbbox',{});
+% end
 
 % remove Conv layers
 net.removeLayer('conv1_1');
@@ -167,6 +190,11 @@ net.removeLayer('pool1');
 net.removeLayer('pool2');
 net.removeLayer('pool3');
 net.removeLayer('pool4');
+
+% remove FC7, relu7, drop7 layers
+net.removeLayer('drop7');
+net.removeLayer('relu7');
+net.removeLayer('fc7');
 
 net.rebuild();
 
