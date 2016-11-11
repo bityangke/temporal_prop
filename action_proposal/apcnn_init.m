@@ -113,9 +113,6 @@ end
 pRP = (arrayfun(@(a) strcmp(a.name, 'roipool'), net.layers)==1);
 net.layers(pFc6).inputs{1} = net.layers(pRP).outputs{1};
 
-% pDrop6 = (arrayfun(@(a) strcmp(a.name, 'drop6'), net.layers)==1);
-% net.layers(pDrop6).inputs{1} = net.layers(pRP).outputs{1};
-
 % Feed output of the drop6 to input of the predcls
 pPredcls = (arrayfun(@(a) strcmp(a.name, 'predcls'), net.layers)==1);
 pDrop6 = (arrayfun(@(a) strcmp(a.name, 'drop6'), net.layers)==1);
