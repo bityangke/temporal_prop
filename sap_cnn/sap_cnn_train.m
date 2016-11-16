@@ -44,7 +44,7 @@ opts.train.numEpochs = numel(opts.train.learningRate) ;
 % -------------------------------------------------------------------------
 %                                                    Network initialization
 % -------------------------------------------------------------------------
-net = fast_rcnn_init(...
+net = sap_cnn_init(...
   'piecewise',opts.piecewise,...
   'modelPath',opts.modelPath);
 
@@ -68,7 +68,7 @@ fprintf('done\n');
 %                                                                Train
 % --------------------------------------------------------------------
 % use train + val split to train
-imdb.images.set(imdb.images.set == 2) = 1;
+% imdb.images.set(imdb.images.set == 2) = 1;
 
 % minibatch options
 bopts = net.meta.normalization;
