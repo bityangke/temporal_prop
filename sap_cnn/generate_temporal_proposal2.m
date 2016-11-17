@@ -6,7 +6,7 @@ function [starts, durations] = generate_temporal_proposal2(numFrames)
 %         durations: 1xN vector containing N temporal action durations with multiple %                    grid_sizes and strides
 
 % numFrames = length(video);
-grid_bank   = [5:5:300, 320:20:700, 750:50:1200];%[5, 10, 20, 30, 50, 70, 100, 200, 300, 500, 1000]; %[1, 2, 3];    % unit in frames
+grid_bank   = [5:5:300, 320:20:700, 750:50:1200, 1500:500:3000];%[5, 10, 20, 30, 50, 70, 100, 200, 300, 500, 1000]; %[1, 2, 3];    % unit in frames
 rand_ind = randperm(numel(grid_bank));
 grid_bank = grid_bank(rand_ind);
 stride_bank = [1]; %[1, 5, 10]; %[1, 2, 3];    % unit in frames
