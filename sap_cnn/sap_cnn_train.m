@@ -17,7 +17,7 @@ addpath('./range_intersection/');
 data_dir       = fullfile(vl_rootnn, '..', 'st-slice-cnn-tar', 'data', 'THUMOS14') ;
 opts.dataDir   = fullfile(vl_rootnn, 'data') ;
 opts.sswDir    = fullfile(vl_rootnn, 'data', 'SSW');
-opts.expDir    = fullfile(vl_rootnn, 'data', 'sap-cnn-vgg16-thumos14') ;
+opts.expDir    = fullfile(vl_rootnn, 'data', 'sap-cnn-vgg16-thumos14-exp20161120-LR_1e-7') ;
 opts.imdbPath  = fullfile(opts.expDir, 'imdb.mat');
 opts.modelPath = fullfile(opts.dataDir, 'models', ...
   'imagenet-vgg-verydeep-16.mat') ;
@@ -28,7 +28,7 @@ opts.train.batchSize = 2 ;
 opts.train.numSubBatches = 1 ;
 opts.train.continue = true ;
 opts.train.prefetch = false ; % does not help for two images in a batch
-opts.train.learningRate = 1e-3 / 64 * [ones(1,6) 0.1*ones(1,6)];
+opts.train.learningRate = 1e-7 / 64 * [ones(1,6) 0.1*ones(1,6)];
 opts.train.weightDecay = 0.0005 ;
 opts.train.numEpochs = 12 ;
 opts.train.derOutputs = {'losscls', 1, 'lossbbox', 1} ;
@@ -63,6 +63,8 @@ else
   fprintf('\n');
 end
 fprintf('done\n');
+
+% imdb.imageDir = fullfile(data_dir, 'all_slices');
 
 % --------------------------------------------------------------------
 %                                                                Train

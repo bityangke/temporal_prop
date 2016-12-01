@@ -9,7 +9,7 @@ addpath('./range_intersection/');
 %%%% paths for feature extraction
 dataDir   = fullfile('..', '..', 'st-slice-cnn-tar', 'data', 'THUMOS14'); % for MacBook. modify this line to set up the data path
 % dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % for cvmlp server. modify this line to set up the data path
-expDir    = fullfile('..','data','exp_20161117_LinearRegression_256sample_128pos_denser_window_tempPool3');
+expDir    = fullfile('..','data','exp_20161129_STROIPool');
 featDir   = fullfile('..', 'data', 'imagenet12-eval-vgg-f', '1D_part');
 imdbPath  = fullfile(expDir, 'imdb.mat');
 
@@ -62,7 +62,8 @@ end
 % -------------------------------------------------------------------------
 modelPath =  fullfile('..','models','imagenet-vgg-verydeep-16.mat');
 % net = apcnn_init('piecewise', opts.piecewise, 'modelPath', modelPath);
-net = apcnn_init2('piecewise', opts.piecewise, 'modelPath', modelPath);
+% net = apcnn_init2('piecewise', opts.piecewise, 'modelPath', modelPath);
+net = apcnn_init2_stroiPool('piecewise', opts.piecewise, 'modelPath', modelPath);
 
 % minibatch options
 bopts = net.meta.normalization;

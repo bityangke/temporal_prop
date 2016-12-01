@@ -1,4 +1,4 @@
-function new_feature = channel_pooling(feature)
+function new_feature = channel_subsampling(feature)
 C = size(feature,3);
 pool_factor = 8;
 

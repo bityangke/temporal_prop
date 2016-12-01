@@ -7,8 +7,8 @@ addpath('./range_intersection/');
 
 opts.classes = {'action'} ;
 opts.confThreshold = 0.5;
-imdbDir    = fullfile('..', 'data', 'exp_20161109_256sample_128pos_denser_window_tempPool3') ;
-modelPath =  fullfile('..','data','exp_20161109_256sample_128pos_denser_window_tempPool3', 'net-epoch-7.mat');
+imdbDir    = fullfile('..', 'data', 'exp_20161117_LinearRegression_256sample_128pos_denser_window_tempPool3') ;
+modelPath =  fullfile('..','data','exp_20161117_LinearRegression_256sample_128pos_denser_window_tempPool3', 'net-epoch-1.mat');
 % imdbDir    = fullfile('..', 'data', 'exp_20161109_256sample_128pos_denser_window_tempPool3') ;
 % modelPath =  fullfile('.','data','exp_20161104_1207', 'net-epoch-12.mat');
 train_imdb_path = fullfile(imdbDir, 'imdb.mat');
@@ -47,12 +47,12 @@ cprobs_total2 = [];
 loss = zeros(numel(imdb.images.feature_path),1);
 loss2 = zeros(numel(imdb.images.feature_path),1);
 
-for test_video=1:numel(imdb.images.feature_path) %60:79
+for test_video=1:numel(imdb.images.feature_path) 
     close all;
     fprintf('Testing... %d/%d\n',test_video, numel(imdb.images.feature_path));
     % Load a test image(feature) and candidate bounding boxes.
     %     load(fullfile(expDir, sprintf('imagenet-vgg_relu5_on_THUMOS14val_%d_1D.mat',test_video)));
-    if imdb.images.set(test_video) == 1    
+    if imdb.images.set(test_video) == 2    
         load(imdb.images.feature_path{test_video});
         oneD_converted_feat = current_GT_1D_feat;
     else
