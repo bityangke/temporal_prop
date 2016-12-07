@@ -12,11 +12,13 @@ classdef TROIPooling < dagnn.Layer
       subdivisions = [7 30]
       transform = 1
       flatten = false
+      subsample_indice = {}
     end
 
     methods
         function outputs = forward(obj, inputs, params)
             numROIs = numel(inputs{2})/3;
+            obj.subsample_indice = cell(size(inputs{1},4),1);
             
             outputs{1} = obj.temporal_roi_pooling(inputs{1}, inputs{2}, obj.subdivisions);
             
@@ -32,6 +34,7 @@ classdef TROIPooling < dagnn.Layer
                 derOutputs{1} = reshape(...
                   derOutputs{1},obj.subdivisions(1),obj.subdivisions(2),[],numROIs) ;
             end
+            % TO DO: let the gradient is bypassed only for the maximum and subsampled locations
             derInputs{1} = vl_nnroipool(...
               inputs{1}, inputs{2}, derOutputs{1}, ...
               'subdivisions', obj.subdivisions, ...
@@ -59,10 +62,11 @@ classdef TROIPooling < dagnn.Layer
                 % one simple version: just using random subsampling
                 cur_rois = rois([2 4],rois(1,:)==i);
                 sub_sampled = cell(1,size(cur_rois,2));
-                sub_sampled = arrayfun(@(x,y)(obj.get_feature(feature_maps(:,:,:,i), x, y, subdiv(2))), ...
+                [sub_sampled, randInd] = arrayfun(@(x,y)(obj.get_feature(feature_maps(:,:,:,i), x, y, subdiv(2))), ...
                                        cur_rois(1,:), cur_rois(2,:), 'UniformOutput', false);
-                
+                obj.subsample_indice{i} = randInd;
                 %%% max pooling over spatial axis
+                % TO DO: store the max indice
                 pooled = cellfun(@(x)(vl_nnpool(x, [poolsize 1],'pad', [0 1 0 0], 'stride', [stride 1], 'method', 'max')), ...
                                  sub_sampled, 'UniformOutput', false);
                 cur_output = cat(4,pooled{:});
@@ -70,7 +74,7 @@ classdef TROIPooling < dagnn.Layer
             end
         end
         
-        function output = get_feature(obj, feature_map, point_start, point_end, numGrid)
+        function [output, randInd] = get_feature(obj, feature_map, point_start, point_end, numGrid)
             out_feat = feature_map(:, point_start:point_end, :);
             N = size(out_feat,2);
             randInd = randi(N, [numGrid, 1]);
