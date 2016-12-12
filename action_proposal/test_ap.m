@@ -8,8 +8,8 @@ addpath('./range_intersection/');
 % opts.dataDir = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14') ;
 % opts.dataDir = fullfile('..', '..','st-slice-cnn-tar','data', 'THUMOS14', 'test') ;
 opts.dataDir = fullfile('..','..', '..', '..', 'dataset','action', 'THUMOS14', 'test') ; % modify this line to set up the data path
-opts.expDir = fullfile('..', 'data', 'imagenet12-eval-vgg-f') ;
-opts.modelPath = fullfile('..', 'models', 'imagenet-alex.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
+opts.expDir = fullfile('..', 'data', 'exp_20161208_STROIPool_fulldata') ;
+opts.modelPath = fullfile('..', 'data', 'exp_20161208_STROIPool_fulldata', 'net-epoch-30.mat'); %'imagenet-vgg-f.mat');%'imagenet-resnet-50-dag.mat') ;
 [opts, varargin] = vl_argparse(opts, varargin) ;
 
 opts.imdbPath = fullfile(opts.expDir, 'imdb.mat');

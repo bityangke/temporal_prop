@@ -9,7 +9,7 @@ addpath('./range_intersection/');
 %%%% paths for feature extraction
 dataDir   = fullfile('..', '..', 'st-slice-cnn-tar', 'data', 'THUMOS14'); % for MacBook. modify this line to set up the data path
 % dataDir   = fullfile('..', '..','..','..','dataset', 'action', 'THUMOS14', 'val'); % for cvmlp server. modify this line to set up the data path
-expDir    = fullfile('..','data','exp_20161129_STROIPool');
+expDir    = fullfile('..','data','exp_20161211_STROIPool_f100to120');
 featDir   = fullfile('..', 'data', 'imagenet12-eval-vgg-f', '1D_part');
 imdbPath  = fullfile(expDir, 'imdb.mat');
 
@@ -56,6 +56,8 @@ else
     mkdir(expDir);
     save(imdbPath, '-struct', 'imdb') ;
 end
+
+imdb = collect_imdb(imdb);
 
 % -------------------------------------------------------------------------
 %                                      Train MLP Regressor and Classifier

@@ -7,11 +7,11 @@ addpath('./range_intersection/');
 
 opts.classes = {'action'} ;
 opts.confThreshold = 0.5;
-imdbDir    = fullfile('..', 'data', 'exp_20161117_LinearRegression_256sample_128pos_denser_window_tempPool3') ;
-modelPath =  fullfile('..','data','exp_20161117_LinearRegression_256sample_128pos_denser_window_tempPool3', 'net-epoch-1.mat');
+imdbDir    = fullfile('..', 'data', 'exp_20161209_STROIPool_fulldata') ;
+modelPath =  fullfile(imdbDir, 'net-deployed.mat');
 % imdbDir    = fullfile('..', 'data', 'exp_20161109_256sample_128pos_denser_window_tempPool3') ;
 % modelPath =  fullfile('.','data','exp_20161104_1207', 'net-epoch-12.mat');
-train_imdb_path = fullfile(imdbDir, 'imdb.mat');
+train_imdb_path = fullfile(imdbDir, 'imdb_debug_20161208.mat');
 % expDir    = fullfile(imdbDir, '1D_part');
 % expDir    = fullfile(imdbDir, '1D_part_test_cheat');
 opts.gpu = [];
@@ -52,7 +52,7 @@ for test_video=1:numel(imdb.images.feature_path)
     fprintf('Testing... %d/%d\n',test_video, numel(imdb.images.feature_path));
     % Load a test image(feature) and candidate bounding boxes.
     %     load(fullfile(expDir, sprintf('imagenet-vgg_relu5_on_THUMOS14val_%d_1D.mat',test_video)));
-    if imdb.images.set(test_video) == 2    
+    if imdb.images.set(test_video) == 1%2    
         load(imdb.images.feature_path{test_video});
         oneD_converted_feat = current_GT_1D_feat;
     else
@@ -87,11 +87,15 @@ for test_video=1:numel(imdb.images.feature_path)
             direction = -1;
         end
 %         shift = d*0.5*direction;
-        shift = d*0.05;
+
+        shift = d*0.20;
+%         shift = d*0.05;
 
 %         scale = 2*rand(1);
-        scale  = 0.9;
-        scale2 = 1.1;
+        scale  = 0.8;
+        scale2 = 1.2;
+%         scale  = 0.9;
+%         scale2 = 1.1;
         if scale > 1 
             sc_shift = round(-d*0.3);
         else
@@ -121,6 +125,8 @@ for test_video=1:numel(imdb.images.feature_path)
     rois2 = single(p_bbox2);
     cumm_rois2 = vertcat(cumm_rois2, rois2(2:5,:)');
     cumm_targets2 = vertcat(cumm_targets2, targets2);
+    
+    p_bbox
     
     % roi normalization
     if use_norm == 1
